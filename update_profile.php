@@ -5,6 +5,9 @@ require 'vendor/autoload.php'; // Load PHPMailer (install with Composer if neede
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+$emailConfig = require 'email_config.php';
+
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -50,14 +53,14 @@ if ($newEmail !== $user['email']) {
     $mail = new PHPMailer(true);
     try {
         $mail->isSMTP();
-        $mail->Host = 'smtp.gmail.com';
+        $mail->Host = $emailConfig['smtp_host'];
         $mail->SMTPAuth = true;
-        $mail->Username   = 'adventure.blogs.verifier@gmail.com'; // Your Gmail email address
-        $mail->Password   = 'sxcr hodm mmly qsqb'; // The 16-character app password you generated
+        $mail->Username = $emailConfig['smtp_username']; // Your Gmail email address
+        $mail->Password = $emailConfig['smtp_password']; // The 16-character app password you generated
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port = 587;
+        $mail->Port = $emailConfig['smtp_port'];
         
-        $mail->setFrom('do-not-reply@adventure.blogs.com', 'Adventure Blogs Verifier');
+        $mail->setFrom($emailConfig['from_email'], $emailConfig['from_name']);
         $mail->addAddress($newEmail);
         $mail->Subject = "Verify Your New Email Address";
         $mail->Body = "Click the link to verify your new email: $verificationLink";

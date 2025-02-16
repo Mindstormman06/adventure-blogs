@@ -5,4 +5,4 @@ api/vendor/composer/LICENSE
 uploads/
 api/
 vendor/
-register.php
+email_config1.php
