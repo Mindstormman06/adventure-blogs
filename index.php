@@ -94,7 +94,7 @@ function formatDate($datetime, $timezone = 'UTC') {
             <p><?php echo $postContent; ?></p> <!-- Render Markdown -->
 
             <?php if ($isVideo): ?>
-                <video style="max-width: 500px; max-height: 500px; min-width: 100px; min-height: 100px;" controls src="<?php echo htmlspecialchars($post['image_path']); ?>" autoplay muted loop>
+                <video style="max-width: 500px; max-height: 500px;" controls src="<?php echo htmlspecialchars($post['image_path']); ?>" autoplay muted loop>
                     Your browser does not support the video tag.
                 </video>
             <?php endif; ?>
@@ -106,7 +106,7 @@ function formatDate($datetime, $timezone = 'UTC') {
             <?php endif; ?>
 
             <?php if ($isImage): ?>
-                <img src="<?php echo htmlspecialchars($post['image_path']); ?>" alt="Failed to load image" style="max-width: 500px; max-height: 500px;">
+                <img src="<?php echo htmlspecialchars($post['image_path']); ?>" alt="Failed to load image" style="max-width: 65%; max-height: 65%;">
             <?php endif; ?>
 
             <p><a class="btn" href="post.php?id=<?php echo $post['id']; ?>">View Comments</a></p>

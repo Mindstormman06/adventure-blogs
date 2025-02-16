@@ -33,7 +33,7 @@ if (isset($_SESSION['user_id'])) {
         <?php endif; ?>
         <a href="dashboard.php">Create Post</a>
         <a href="logout.php">Logout</a>
-        <p class="lia" style="color:lightblue;margin: 0 15px;font-weight:bold;">Logged in as: <?php echo isset($_SESSION['username']) ? $_SESSION['username'] : 'Guest'; ?> (<?php echo ($user['role'])?>)</p>
+        <p class="lia" style="color:lightblue;margin: 0 15px;font-weight:bold;">Logged in as:<a href="edit_user.php" style="color:lightblue;margin: 0 15px;font-weight:bold;"><?php echo isset($_SESSION['username']) ? $_SESSION['username'] : 'Guest'; ?> (<?php echo $user['role']?>)</a></p>
 
 
     <?php else: ?>
