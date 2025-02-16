@@ -1,0 +1,7 @@
+composer.json
+composer.lock
+api/vendor/composer/installed.json
+api/vendor/composer/LICENSE
+uploads/
+api/
+vendor/
