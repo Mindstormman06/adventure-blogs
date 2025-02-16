@@ -1,1 +1,1 @@
-# adventure-blogs
+# Adventure Blogs
