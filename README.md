@@ -67,11 +67,15 @@ $pdo = new PDO($dsn, $username, $password, $options);
 
 ### 4. Configure Email
 
-For email functionality (password resets, email verification), configure your email settings in `update_profile.php` or any other email-sending related script:
+For email functionality (password resets, email verification), configure your email settings in `email_config.php`, and update the imports at the top of `update_profile.php` & `register.php` to use `email_config.php`
 
 ```php
-$mail->Username = 'your-email@gmail.com'; // Your email
-$mail->Password = 'your-app-password';    // Your app password (create one if you are using Gmail)
+    'smtp_host' => 'smtp.gmail.com',
+    'smtp_username' => 'example@example.com',
+    'smtp_password' => 'exam plpa sswo rd01', // 16-character app password
+    'smtp_port' => 587,
+    'from_email' => 'example@example.com',
+    'from_name' => 'Example Verifier',
 ```
 
 ### 5. Set Up Apache or Nginx
