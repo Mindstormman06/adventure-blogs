@@ -18,6 +18,7 @@ if (isset($_SESSION['user_id'])) {
 
 }
 $videoFileTypes = ['mp4', 'ogg', 'webm', 'mov'];
+$audioFileTypes = ['mp3', 'wav', 'ogg', 'm4a'];
 
 $stmt = $pdo->query("
     SELECT posts.id, posts.title, posts.content, posts.image_path, users.username 
@@ -37,7 +38,8 @@ $posts = $stmt->fetchAll();
         // Get the file extension
         $fileExtension = pathinfo($post['image_path']);
         $isVideo = in_array(strtolower($fileExtension['extension']), $videoFileTypes);
-        $isImage = !$isVideo && !empty($post['image_path']); // Ensure it's not empty and not a video
+        $isAudio = in_array(strtolower($fileExtension['extension']), $audioFileTypes);
+        $isImage = !$isVideo && !$isAudio && !empty($post['image_path']); // Ensure it's not empty and not a video
         $postUserID = $post['username'];
     ?>
         <div class="post">
@@ -51,10 +53,18 @@ $posts = $stmt->fetchAll();
                 </video>
             <?php endif; ?>
 
+            <?php if ($isAudio): ?>
+                <audio controls src="<?php echo htmlspecialchars($post['image_path']); ?>">
+                    Your browser does not support the audio element.
+                </audio>
+            <?php endif; ?>
+
+
             <?php if ($isImage): ?>
                 <img src="<?php echo htmlspecialchars($post['image_path']); ?>" alt="Failed to load image" style="max-width: 500px; max-height: 500px;">
             <?php endif; ?>
 
+            
             <p><a class="btn" href="post.php?id=<?php echo $post['id']; ?>">View Comments</a></p>
 
             <?php if (isset($_SESSION['user_id']) && $user && ($_SESSION['username'] == $post['username'] || $user['role'] == 'admin')): ?>
