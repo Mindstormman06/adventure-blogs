@@ -5,13 +5,13 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+require 'vendor\erusev\parsedown\Parsedown.php'; // Include Parsedown for Markdown support
 
 if (!isset($_GET['id'])) {
     die("Invalid post ID.");
 }
 
 $videoFileTypes = ['mp4', 'ogg', 'webm', 'mov'];
-
 
 $postId = $_GET['id'];
 
@@ -52,13 +52,16 @@ $comments = $commentStmt->fetchAll(PDO::FETCH_ASSOC);
 
 $fileExtension = pathinfo($post['image_path']);
 $isVideo = in_array(strtolower($fileExtension['extension']), $videoFileTypes);
-$isImage = !$isVideo && !empty($post['image_path']); // Ensure it's not empty and not a video
+$isImage = !$isVideo && !empty($post['image_path']); 
+
+$Parsedown = new Parsedown(); // Initialize Parsedown
+$postContent = $Parsedown->text($post['content']); // Convert Markdown to HTML
 ?>
 
 <div class="container">
     <h2><?php echo htmlspecialchars($post['title']); ?></h2>
     <p><i>By <?php echo htmlspecialchars($post['username']); ?></i></p>
-    <p><?php echo nl2br(htmlspecialchars($post['content'])); ?></p>
+    <p><?php echo $postContent; ?></p> <!-- Render Markdown -->
 
     <?php if ($isVideo): ?>
         <video controls src="<?php echo htmlspecialchars($post['image_path']); ?>" style="max-width: 500px; max-height: 500px;" autoplay muted loop>

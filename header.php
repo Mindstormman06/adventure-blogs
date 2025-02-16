@@ -19,6 +19,7 @@ if (isset($_SESSION['user_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Adventure Blog</title>
+    <link rel="icon" href="http://adventure-blog.ddns.net/favicon.ico?v=2" />
     <link rel="stylesheet" href="style.css">
     <script src="js/script.js"></script>
 </head>

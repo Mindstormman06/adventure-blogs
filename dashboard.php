@@ -84,6 +84,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <textarea name="content" id="content" required maxlength="1000"></textarea>
         <p id="content-char-count">0/1000 characters used</p>
 
+        <p><i>Markdown is supported! Click <a href="https://github.com/adam-p/markdown-here/wiki/markdown-cheatsheet">here</a> for a guide on using Markdown</i></p>
+
         <!-- Image upload -->
         <label>Upload Media:</label>
         <input type="file" name="image" required>
