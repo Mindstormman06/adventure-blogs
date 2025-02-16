@@ -122,12 +122,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-### Tips for Customizing:
-
-- Feel free to update the `config.php` to match your server and database configuration.
-- Customize the CSS and HTML structure to fit your design preferences.
-- Add any additional features or integrations you'd like, such as a comment system, tags, or search functionality.
-
----
-
-Feel free to adjust the instructions and descriptions to match the specifics of your project, such as the database schema, email configuration, and any extra features you might have added.
