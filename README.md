@@ -1,7 +1,3 @@
-Here’s a basic README template for your GitHub page that explains the functionality of the blog, how to set it up, and how to use it:
-
----
-
 # Adventure Blog
 
 Adventure Blog is a simple, customizable, and secure blog platform that allows users to create and share posts. It includes features like user registration, authentication, post creation, email verification for account updates, and more. This project is built using PHP, MySQL, and other front-end technologies.
