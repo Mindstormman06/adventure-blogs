@@ -5,3 +5,4 @@ api/vendor/composer/LICENSE
 uploads/
 api/
 vendor/
+register.php
