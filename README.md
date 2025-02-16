@@ -16,6 +16,7 @@ Adventure Blog is a simple, customizable, and secure blog platform that allows u
 - **MySQL** (or MariaDB)
 - **Apache/Nginx** for local or live hosting
 - **PHPMailer** for email functionality (used for sending verification emails)
+- **Parsedown** for Markdown support
 
 ## Installation
 
@@ -24,7 +25,7 @@ Adventure Blog is a simple, customizable, and secure blog platform that allows u
 Clone this repository to your local machine:
 
 ```bash
-git clone https://github.com/your-username/adventure-blog.git
+git clone https://github.com/Mindstormman06/adventure-blog.git
 cd adventure-blog
 ```
 
