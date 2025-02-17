@@ -5,8 +5,7 @@ require 'vendor/autoload.php'; // Load PHPMailer (install with Composer if neede
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-$emailConfig = require 'email_config.php';
-
+$emailConfig = require 'email_config_personal.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -17,7 +16,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 // Fetch user data
-$stmt = $pdo->prepare("SELECT id, username, email, password_hash FROM users WHERE id = ?");
+$stmt = $pdo->prepare("SELECT id, username, email, password_hash, profile_photo, instagram_link, website_link FROM users WHERE id = ?");
 $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -30,9 +29,32 @@ $currentPassword = $_POST['current_password'] ?? '';
 $newUsername = $_POST['username'] ?? $user['username'];
 $newEmail = $_POST['email'] ?? $user['email'];
 $newPassword = $_POST['password_hash'] ?? '';
+$instagram = $_POST['instagram_link'] ?? '';
+$website = $_POST['website_link'] ?? '';
 
 if (!password_verify($currentPassword, $user['password_hash'])) {
     die("Incorrect current password.");
+}
+
+// Handle profile photo upload
+$profilePhoto = $user['profile_photo']; // Keep the old photo by default
+if (!empty($_FILES['profile_photo']['name'])) {
+    $uploadDir = "profile_photos/";
+    $fileName = basename($_FILES["profile_photo"]["name"]);
+    $targetFile = $uploadDir . time() . "_" . $fileName;
+    $imageFileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
+
+    // Validate image file type
+    $allowedTypes = ['jpg', 'jpeg', 'png', 'gif'];
+    if (in_array($imageFileType, $allowedTypes)) {
+        if (move_uploaded_file($_FILES["profile_photo"]["tmp_name"], $targetFile)) {
+            $profilePhoto = $targetFile;
+        } else {
+            die("Error uploading profile photo.");
+        }
+    } else {
+        die("Invalid file type. Only JPG, PNG, and GIF are allowed.");
+    }
 }
 
 // Check if the email has changed
@@ -43,9 +65,6 @@ if ($newEmail !== $user['email']) {
     // Store the pending email and token
     $stmt = $pdo->prepare("UPDATE users SET pending_email = ?, verification_token = ? WHERE id = ?");
     $stmt->execute([$newEmail, $token, $user['id']]);
-    $stmt1 = $pdo->prepare("SELECT verification_token FROM users WHERE id = ?");
-    $stmt1->execute([$user['id']]);
-    $updated = $stmt1->fetchAll();
 
     // Send verification email
     $verificationLink = "http://adventure-blog.ddns.net/verify_email_change.php?token=$token";
@@ -55,8 +74,8 @@ if ($newEmail !== $user['email']) {
         $mail->isSMTP();
         $mail->Host = $emailConfig['smtp_host'];
         $mail->SMTPAuth = true;
-        $mail->Username = $emailConfig['smtp_username']; // Your Gmail email address
-        $mail->Password = $emailConfig['smtp_password']; // The 16-character app password you generated
+        $mail->Username = $emailConfig['smtp_username'];
+        $mail->Password = $emailConfig['smtp_password'];
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = $emailConfig['smtp_port'];
         
@@ -72,22 +91,23 @@ if ($newEmail !== $user['email']) {
     }
 }
 
-// Update other fields
+// Update database with new profile information
 if (!empty($newPassword)) {
     $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-    $stmt = $pdo->prepare("UPDATE users SET username = ?, password = ? WHERE id = ?");
-    $stmt->execute([$newUsername, $hashedPassword, $user['id']]);
+    $stmt = $pdo->prepare("UPDATE users SET username = ?, password_hash = ?, profile_photo = ?, instagram_link = ?, _link = ? WHERE id = ?");
+    $stmt->execute([$newUsername, $hashedPassword, $profilePhoto, $instagram, $website, $user['id']]);
 } else {
-    $stmt = $pdo->prepare("UPDATE users SET username = ? WHERE id = ?");
-    $stmt->execute([$newUsername, $user['id']]);
+    $stmt = $pdo->prepare("UPDATE users SET username = ?, profile_photo = ?, instagram_link = ?, website_link = ? WHERE id = ?");
+    $stmt->execute([$newUsername, $profilePhoto, $instagram, $website, $user['id']]);
 }
 
+// Redirect with a message
 if ($newEmail !== $user['email']) {
     $_SESSION['email_verification_notice'] = "Please verify your new email address. A verification link has been sent.";
     header("Location: edit_user.php");
     exit();
 } else {
-    header("Location: edit_user.php" . urlencode("Your profile has been updated."));
+    header("Location: edit_user.php?success=Your profile has been updated.");
     exit();
 }
 ?>

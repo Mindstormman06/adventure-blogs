@@ -1,4 +1,14 @@
 /* General Styles */
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #333;
+    color: white;
+}
+
 body {
     font-family: sans-serif;
     background-color: #f4f4f4;
@@ -6,18 +16,26 @@ body {
     padding: 0;
 }
 
+.nav-container {
+    flex: 1;
+    justify-content: center;
+}
+
 /* Navigation Bar */
+
 nav {
     background-color: #333;
     padding: 10px;
     text-align: center;
+    display: flex;
+    gap: 15px;
 }
 
 nav a {
     color: white;
     text-decoration: none;
-    margin: 0 15px;
     font-weight: bold;
+    padding: 10px 15px;
 }
 
 .lia p {
@@ -53,39 +71,39 @@ nav a:hover {
     color: #333;
 }
 
-.post img {
+.post-image {
     max-width: 100%;
     border-radius: 5px;
     margin-top: 10px;
 }
 
 /* Buttons */
-button, .btn {
+/* button, .btn {
     background-color: #007BFF;
     color: white;
     padding: 10px 15px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-family: inherit; /* Ensures it uses the same font as the page */
-    text-decoration: none; /* Forces underlining */
+    font-family: inherit;
+    text-decoration: none; 
 }
 
 button:hover, .btn:hover {
     background-color: #0056b3;
-    text-decoration: underline; /* Ensure underline on hover */
+    text-decoration: underline; 
 }
 
 button {
-    all: unset; /* Resets browser defaults */
+    all: unset; 
     display: inline-block;
     padding: 10px 15px;
     background-color: #007BFF;
     color: white;
     border-radius: 5px;
     cursor: pointer;
-    font-family: sans-serif; /* Ensures it follows the main font */
-}
+    font-family: sans-serif;
+} */
 
 /* Form Styling */
 form {
@@ -120,3 +138,9 @@ footer {
 .post_controls {
     margin-top: 30px;
 }
+
+/* User info container on the right */
+
+
+
+

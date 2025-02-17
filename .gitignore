@@ -5,4 +5,5 @@ api/vendor/composer/LICENSE
 uploads/
 api/
 vendor/
-email_config1.php
+profile_photos/
+email_config_personal.php

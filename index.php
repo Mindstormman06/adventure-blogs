@@ -20,12 +20,20 @@ $videoFileTypes = ['mp4', 'ogg', 'webm', 'mov'];
 $audioFileTypes = ['mp3', 'wav', 'ogg', 'm4a'];
 
 $stmt = $pdo->query("
-    SELECT posts.id, posts.title, posts.content, posts.image_path, users.username, posts.created_at 
+    SELECT posts.id, posts.title, posts.content, posts.image_path, users.username, posts.created_at, users.profile_photo, location_name, latitude, longitude
     FROM posts 
     JOIN users ON posts.user_id = users.id 
     ORDER BY posts.created_at DESC
 ");
 $posts = $stmt->fetchAll();
+
+$stmt1 = $pdo->query("
+    SELECT tags.id, tags.name, post_tags.post_id
+    FROM tags
+    INNER JOIN post_tags ON tags.id = post_tags.tag_id");
+$tags1 = $stmt1->fetchAll();
+
+
 
 $Parsedown = new Parsedown(); // Initialize Parsedown
 
@@ -62,7 +70,29 @@ function formatDate($datetime, $timezone = 'UTC') {
     return $date->format('Y/m/d');  // Format as YYYY/MM/DD
 }
 ?>
+<head>
+    <style>
 
+        .profile-photo-post {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-left: 5px; /* Space between username and profile picture */
+            border: 2px solid black;
+        }
+
+        .post-user-link {
+            display: flex;
+            align-items: center;
+            text-decoration: none; /* Remove underline */
+            color: black; /* Make text black */
+            font-style: normal; /* Ensure normal text style */
+        }
+
+    </style>
+</head>
+<body>
 <div class="container">
     <h1>Recent Posts</h1>
 
@@ -73,6 +103,13 @@ function formatDate($datetime, $timezone = 'UTC') {
         $isImage = !$isVideo && !$isAudio && !empty($post['image_path']);
         $postUserID = $post['username'];
 
+
+        foreach ($tags1 as $tags) {
+            if ($tags['post_id'] == $post['id']) {
+                $postTag = $tags;
+            }
+        }
+
         // Convert Markdown to HTML safely
         $postContent = $Parsedown->text($post['content']);
 
@@ -80,9 +117,26 @@ function formatDate($datetime, $timezone = 'UTC') {
         $formattedPostDate = formatDate($post['created_at'], 'UTC');
         $timeAgo = timeAgo($post['created_at'], 'UTC');
     ?>
-        <div class="post">
-            <h2><?php echo htmlspecialchars($post['title']); ?></h2>
-            <p><i>By <?php echo htmlspecialchars($post['username']); ?></i></p>
+        <div class="post" data-username="<?php echo strtolower($post['username']); ?>" data-tags="<?php foreach ($tags1 as $tag) { if ($tag['post_id'] == $post['id']) { echo strtolower($tag['name']) . ' '; } } ?>" data-location="<?php echo strtolower($post['location_name']); ?>" data-content="<?php echo strtolower(strip_tags($post['content'])); ?>">
+            
+            <!-- Post title -->
+            <h2 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h2>
+
+            <!-- Debug Prints -->
+            <?php // echo '<pre>'; print_r($postTags); echo '</pre>'; ?>
+            <?php // echo '<pre>'; print_r($postTag); echo '</pre>'; ?>
+            <?php // echo '<pre>'; print_r($post); echo '</pre>'; ?>
+
+            <!-- Posted by user -->
+            <p style="display: flex; align-items: center;" class="post-username">
+                <a href="<?php echo 'user_profile.php?username=' . $post['username']?>" class="post-user-link">
+                    <i>By <?php echo htmlspecialchars($post['username']);?></i>
+                    <img src="<?php echo !empty($post['profile_photo']) ? htmlspecialchars($post['profile_photo']) : 'profile_photos/default_profile.png'; ?>" 
+                        alt="Profile Photo" class="profile-photo-post">
+                </a>
+            </p>
+
+            <!-- Posted Date/Time -->
             <p>
                 <i>Posted on 
                 <span class="post-time" data-time="<?php echo htmlspecialchars($post['created_at']); ?>">
@@ -91,8 +145,21 @@ function formatDate($datetime, $timezone = 'UTC') {
                 <b>Only accurate in PST (For now)</b>
                 </i>
             </p>
-            <p><?php echo $postContent; ?></p> <!-- Render Markdown -->
 
+            <!-- Post Tags -->
+            <p class="post-tags"><strong>Tags:</strong> 
+                <?php 
+                    foreach ($tags1 as $tags) {
+                        if ($tags['post_id'] == $post['id']) {   
+                            echo '#' . htmlspecialchars($tags['name']) . " ";
+                        }
+                    }
+                ?>
+            </p>
+            <!-- Render Markdown -->
+            <p><?php echo $postContent; ?></p> 
+
+            <!-- Display media content -->
             <?php if ($isVideo): ?>
                 <video style="max-width: 500px; max-height: 500px;" controls src="<?php echo htmlspecialchars($post['image_path']); ?>" autoplay muted loop>
                     Your browser does not support the video tag.
@@ -106,18 +173,42 @@ function formatDate($datetime, $timezone = 'UTC') {
             <?php endif; ?>
 
             <?php if ($isImage): ?>
-                <img src="<?php echo htmlspecialchars($post['image_path']); ?>" alt="Failed to load image" style="max-width: 65%; max-height: 65%;">
+                <img src="<?php echo htmlspecialchars($post['image_path']); ?>" alt="Failed to load image" style="max-width: 65%; max-height: 65%;" class="post-image">
             <?php endif; ?>
 
-            <p><a class="btn" href="post.php?id=<?php echo $post['id']; ?>">View Comments</a></p>
-
-            <?php if (isset($_SESSION['user_id']) && $user && ($_SESSION['username'] == $post['username'] || $user['role'] == 'admin')): ?>
-                <p class="post_controls">
-                    <a class="btn btn-warning" href="edit_post.php?id=<?php echo $post['id']; ?>">Edit</a>
-                    <a class="btn btn-danger" href="delete_post.php?id=<?php echo $post['id']; ?>" 
-                    onclick="return confirm('Are you sure you want to delete this post?');">Delete</a>
+            <!-- Display location if available -->
+            <?php if (!empty($post['location_name']) && !empty($post['latitude']) && !empty($post['longitude'])): ?>
+                <p class="post-location">
+                    <strong>Location:</strong> 
+                    <a href="view_location.php?lat=<?php echo $post['latitude']; ?>&lng=<?php echo $post['longitude']; ?>&name=<?php echo $post['location_name']; ?>">
+                        <?php echo htmlspecialchars($post['location_name']); ?>
+                    </a>
                 </p>
             <?php endif; ?>
+
+            <!-- View Comments Button -->
+            
+                <a class="" href="post.php?id=<?php echo $post['id']; ?>">
+                    <button type="button" class="text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">View Comments</button>
+                </a>
+            
+
+            <!-- Post Controls -->
+            <?php if (isset($_SESSION['user_id']) && $user && ($_SESSION['username'] == $post['username'] || $user['role'] == 'admin')): ?>
+            <div class="flex gap-2 mt-2 md:mt-0">
+                <a href="edit_post.php?id=<?php echo $post['id']; ?>">
+                    <button type="button" class="text-black bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-4 focus:ring-yellow-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:focus:ring-yellow-900">
+                        Edit
+                    </button>
+                </a>
+
+                <a href="delete_post.php?id=<?php echo $post['id']; ?>" onclick="return confirm('Are you sure you want to delete this post?');">
+                    <button type="button" class="text-white bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+                        Delete
+                    </button>
+                </a>
+            </div>
+    <?php endif; ?>
         </div>
     <?php endforeach; ?>
 </div>

@@ -6,7 +6,7 @@ require 'vendor/autoload.php'; // Make sure PHPMailer is loaded
 
 include 'header.php';
 include 'config.php';
-$emailConfig = require 'email_config.php';
+$emailConfig = require 'email_config_personal.php';
 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
