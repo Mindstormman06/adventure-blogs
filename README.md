@@ -1,7 +1,3 @@
-Here’s a basic README template for your GitHub page that explains the functionality of the blog, how to set it up, and how to use it:
-
----
-
 # Adventure Blog
 
 Adventure Blog is a simple, customizable, and secure blog platform that allows users to create and share posts. It includes features like user registration, authentication, post creation, email verification for account updates, and more. This project is built using PHP, MySQL, and other front-end technologies.
@@ -20,6 +16,7 @@ Adventure Blog is a simple, customizable, and secure blog platform that allows u
 - **MySQL** (or MariaDB)
 - **Apache/Nginx** for local or live hosting
 - **PHPMailer** for email functionality (used for sending verification emails)
+- **Parsedown** for Markdown support
 
 ## Installation
 
@@ -28,7 +25,7 @@ Adventure Blog is a simple, customizable, and secure blog platform that allows u
 Clone this repository to your local machine:
 
 ```bash
-git clone https://github.com/your-username/adventure-blog.git
+git clone https://github.com/Mindstormman06/adventure-blog.git
 cd adventure-blog
 ```
 
@@ -48,30 +45,31 @@ Open `config.php` and configure your database connection details:
 
 ```php
 <?php
-$host = 'localhost';   // Database host
-$dbname = 'adventure_blog';  // Database name
-$username = 'root';     // Database username
-$password = '';         // Database password
-$charset = 'utf8mb4';
-$dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
+$host = 'localhost';
+$dbname = 'example';
+$username = 'example';
+$password = 'example';
 
-// Set the PDO instance for database connection
-$options = [
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES => false,
-];
-$pdo = new PDO($dsn, $username, $password, $options);
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("Database connection failed: " . $e->getMessage());
+}
 ?>
 ```
 
 ### 4. Configure Email
 
-For email functionality (password resets, email verification), configure your email settings in `update_profile.php` or any other email-sending related script:
+For email functionality (password resets, email verification), configure your email settings in `email_config.php`, and update the imports at the top of `update_profile.php` & `register.php` to use `email_config.php`
 
 ```php
-$mail->Username = 'your-email@gmail.com'; // Your email
-$mail->Password = 'your-app-password';    // Your app password (create one if you are using Gmail)
+    'smtp_host' => 'smtp.gmail.com',
+    'smtp_username' => 'example@example.com',
+    'smtp_password' => 'exam plpa sswo rd01', // 16-character app password
+    'smtp_port' => 587,
+    'from_email' => 'example@example.com',
+    'from_name' => 'Example Verifier',
 ```
 
 ### 5. Set Up Apache or Nginx
@@ -124,12 +122,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-### Tips for Customizing:
-
-- Feel free to update the `config.php` to match your server and database configuration.
-- Customize the CSS and HTML structure to fit your design preferences.
-- Add any additional features or integrations you'd like, such as a comment system, tags, or search functionality.
-
----
-
-Feel free to adjust the instructions and descriptions to match the specifics of your project, such as the database schema, email configuration, and any extra features you might have added.
