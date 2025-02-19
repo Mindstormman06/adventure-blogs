@@ -81,6 +81,42 @@ nav a:hover {
     text-decoration: none;
 }
 
+@media (max-width: 768px) { /* Adjust for mobile screens */
+    .nav-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    nav {
+        flex-direction: row;
+        text-align: center;
+        gap: 10px;
+    }
+
+    .user-info {
+        position: relative; /* Prevent absolute positioning issues */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .profile-photo-header {
+        width: 30px;
+        height: 30px;
+        margin-left: 22px;
+    }
+
+    .username {
+        font-size: 14px;
+        max-width: 100px;
+        margin-left: 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
 
 /* Main Content Container */
 .container {

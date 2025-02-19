@@ -183,8 +183,12 @@ function formatDate($datetime, $timezone = 'UTC') {
 
                         <?php if ($isAudio): ?>
                             <div>
-                                <?php $i += 1; ?>
-                                <p><?php echo $postFilesOriginal[$post['id']][$i];?></p>
+                                <?php 
+                                    $i += 1;
+                                    $originalName = $postFilesOriginal[$post['id']][$i];
+                                    $displayName = mb_strimwidth($originalName, 0, 36, "..."); 
+                                ?>
+                                <p style="margin-top: 5px"><?php echo htmlspecialchars($displayName);?></p>
                                 <audio controls src="<?php echo htmlspecialchars($file); ?>" loop></audio>
                             </div>
                         <?php endif; ?>

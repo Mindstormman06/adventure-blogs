@@ -84,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $fileExt = pathinfo($_FILES["images"]["name"][$i], PATHINFO_EXTENSION);
 
                 // Store Original File Name
-                $originalFileName = $_FILES["images"]["name"][$i];
+                $originalFileName = pathinfo($_FILES["images"]["name"][$i], PATHINFO_FILENAME);
 
                 // Rename file to include post ID and timestamp
                 $customFileName = $post_id . "-" . time() . "-" . $i . "." . $fileExt;

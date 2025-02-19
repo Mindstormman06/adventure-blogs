@@ -71,18 +71,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 ?>
 
-<h2>Register</h2>
-<form method="post">
-    <label>Email:</label>
-    <input type="email" name="email" required>
-    <br>
-    <label>Username:</label>
-    <input type="text" name="username" required>
-    <br>
-    <label>Password:</label>
-    <input type="password" name="password" required>
-    <br>
-    <button type="submit" class="btn btn-primary">Register</button>
-</form>
+<div class="container">
+    <h2>Register</h2>
+    <form method="post">
+        <label>Email:</label>
+        <input type="email" name="email" required>
+        <br>
+        <label>Username:</label>
+        <input type="text" name="username" required>
+        <br>
+        <label>Password:</label>
+        <input type="password" name="password" required>
+        <br>
+        <button type="submit" class="btn btn-primary">Register</button>
+    </form>
+</div>
 
 <?php include 'footer.php'; ?>

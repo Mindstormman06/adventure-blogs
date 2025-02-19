@@ -35,20 +35,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 ?>
 
-<h2>Login</h2>
-<form method="post">
 
-    <!-- Username field -->
-    <label>Username:</label>
-    <input type="text" name="username" required>
-    <br>
+<div class="container">
+    <h2>Login</h2>
+    <form method="post">
 
-    <!-- Password field -->
-    <label>Password:</label>
-    <input type="password" name="password" required>
-    <br>
+        <!-- Username field -->
+        <label>Username:</label>
+        <input type="text" name="username" required>
+        <br>
 
-    <button type="submit" class="btn btn-primary">Login</button>
-</form>
+        <!-- Password field -->
+        <label>Password:</label>
+        <input type="password" name="password" required>
+        <br>
+
+        <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+</div>
 
 <?php include 'footer.php'; ?>

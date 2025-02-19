@@ -143,9 +143,13 @@ $postContent = $Parsedown->text($post['content']); // Convert Markdown to HTML
 
             <?php if ($isAudio): ?>
                 <div>
-                    <?php $i += 1; ?>
-                    <p style="margin-top: 15px"><?php echo $postFilesOriginal[$post['id']][$i];?></p>
-                    <audio controls src="<?php echo htmlspecialchars($file); ?>" loop ></audio>
+                    <?php 
+                        $i += 1;
+                        $originalName = $postFilesOriginal[$post['id']][$i];
+                        $displayName = mb_strimwidth($originalName, 0, 40, "..."); 
+                    ?>
+                    <p style="margin-top: 15px"><?php echo htmlspecialchars($displayName);?></p>
+                    <audio controls src="<?php echo htmlspecialchars($file); ?>" loop></audio>
                 </div>
             <?php endif; ?>
 
