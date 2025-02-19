@@ -67,7 +67,7 @@ nav a:hover {
     border-radius: 50%;
     object-fit: cover;
     margin-right: 10px;
-    border: 1px solid white;
+    border: 2px solid black;
 }
 .user-info {
     position: absolute;
@@ -235,15 +235,6 @@ nav a:hover {
     border-radius: 10px;
 }
 
-.profile-photo-post {
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-left: 5px; /* Space between username and profile picture */
-    border: 2px solid black;
-}
-
 .post-user-link {
     display: flex;
     align-items: center;
@@ -299,7 +290,7 @@ audio.media-item {
     height: 120px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #ddd;
+    border: 2px solid black;
     margin-bottom: 10px;
 }
 
