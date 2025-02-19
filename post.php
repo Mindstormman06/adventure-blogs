@@ -11,6 +11,7 @@ if (!isset($_GET['id'])) {
     die("Invalid post ID.");
 }
 
+// Approved file types for audio and video
 $videoFileTypes = ['mp4', 'ogg', 'webm', 'mov'];
 $audioFileTypes = ['mp3', 'wav', 'ogg', 'm4a', 'flac'];
 
@@ -54,10 +55,11 @@ $stmt1 = $pdo->query("
     INNER JOIN post_tags ON tags.id = post_tags.tag_id");
 $tags1 = $stmt1->fetchAll();
 
-$postFilesStmt = $pdo->query("SELECT post_id, file_path FROM post_files");
+$postFilesStmt = $pdo->query("SELECT post_id, file_path, original_filename FROM post_files");
 $postFiles = [];
 while ($row = $postFilesStmt->fetch(PDO::FETCH_ASSOC)) {
     $postFiles[$row['post_id']][] = $row['file_path'];
+    $postFilesOriginal[$row['post_id']][] = $row['original_filename'];
 }
 
 // Fetch Comments
@@ -86,52 +88,17 @@ $fileExtension = pathinfo($postFiles[$post['id']][0]);
 $isVideo = in_array(strtolower($fileExtension['extension']), $videoFileTypes);
 $isAudio = in_array(strtolower($fileExtension['extension']), $audioFileTypes);
 $isImage = !$isVideo && !$isAudio && !empty($post['image_path']);
+$i = -1;
 
 $Parsedown = new Parsedown(); // Initialize Parsedown
 $postContent = $Parsedown->text($post['content']); // Convert Markdown to HTML
 ?>
-<head>
-    <style>
 
-        .profile-photo-post {
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-left: 1px; /* Space between username and profile picture */
-            border: 2px solid black;
-        }
-
-        .post-user-link {
-            display: flex;
-            align-items: center;
-            text-decoration: none; /* Remove underline */
-            color: black; /* Make text black */
-            font-style: normal; /* Ensure normal text style */
-        }
-
-        .comment {
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin-bottom: 10px;
-            background: #f9f9f9;
-            border-radius: 5px;
-        }
-
-        .replies {
-            margin-left: 20px;
-            border-left: 2px solid #ddd;
-            padding-left: 10px;
-            margin-top: 10px;
-        }
-
-    </style>
-</head>
 <div class="container">
     <h2><?php echo htmlspecialchars($post['title']); ?></h2>
     <p style="display: flex; align-items: center;" class="post-username">
-        <a href="<?php echo 'user_profile.php?username=' . $post['username']?>" class="post-user-link">
-            <i>By <?php echo htmlspecialchars($post['username']);?></i>
+        <a href="<?php echo 'user_profile.php?username=' . $post['username']?>" class="post-user-link link-primary">
+            <?php echo htmlspecialchars($post['username']);?>
             <img src="<?php echo !empty($post['profile_photo']) ? htmlspecialchars($post['profile_photo']) : 'profile_photos/default_profile.png'; ?>" 
                 alt="Profile Photo" class="profile-photo-post">
         </a>
@@ -175,9 +142,11 @@ $postContent = $Parsedown->text($post['content']); // Convert Markdown to HTML
             <?php endif; ?>
 
             <?php if ($isAudio): ?>
-                <audio controls src="<?php echo htmlspecialchars($file); ?>" loop>
-                    Your browser does not support the audio element.
-                </audio>
+                <div>
+                    <?php $i += 1; ?>
+                    <p style="margin-top: 15px"><?php echo $postFilesOriginal[$post['id']][$i];?></p>
+                    <audio controls src="<?php echo htmlspecialchars($file); ?>" loop ></audio>
+                </div>
             <?php endif; ?>
 
             <?php if ($isImage): ?>

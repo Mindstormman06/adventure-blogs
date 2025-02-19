@@ -40,10 +40,11 @@ $stmt1 = $pdo->query("
 $tags1 = $stmt1->fetchAll();
 
 // Fetch all post files
-$postFilesStmt = $pdo->query("SELECT post_id, file_path FROM post_files");
+$postFilesStmt = $pdo->query("SELECT post_id, file_path, original_filename FROM post_files");
 $postFiles = [];
 while ($row = $postFilesStmt->fetch(PDO::FETCH_ASSOC)) {
     $postFiles[$row['post_id']][] = $row['file_path'];
+    $postFilesOriginal[$row['post_id']][] = $row['original_filename'];
 }
 
 // Initialize Parsedown
@@ -93,6 +94,7 @@ function formatDate($datetime, $timezone = 'UTC') {
         $isVideo = in_array(strtolower($fileExtension['extension']), $videoFileTypes);
         $isAudio = in_array(strtolower($fileExtension['extension']), $audioFileTypes);
         $isImage = !$isVideo && !$isAudio && !empty($post['image_path']);
+        $i = -1;
         
         // Set User ID
         $postUserID = $post['username'];
@@ -180,7 +182,11 @@ function formatDate($datetime, $timezone = 'UTC') {
                         <?php endif; ?>
 
                         <?php if ($isAudio): ?>
-                            <audio controls src="<?php echo htmlspecialchars($file); ?>" loop></audio>
+                            <div>
+                                <?php $i += 1; ?>
+                                <p><?php echo $postFilesOriginal[$post['id']][$i];?></p>
+                                <audio controls src="<?php echo htmlspecialchars($file); ?>" loop></audio>
+                            </div>
                         <?php endif; ?>
 
                         <?php if ($isImage): ?>

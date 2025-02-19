@@ -83,6 +83,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Get file extension
                 $fileExt = pathinfo($_FILES["images"]["name"][$i], PATHINFO_EXTENSION);
 
+                // Store Original File Name
+                $originalFileName = $_FILES["images"]["name"][$i];
+
                 // Rename file to include post ID and timestamp
                 $customFileName = $post_id . "-" . time() . "-" . $i . "." . $fileExt;
 
@@ -108,8 +111,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // }
 
                 // Insert file path into post_files table
-                $stmt = $pdo->prepare("INSERT INTO post_files (post_id, file_path) VALUES (?, ?)");
-                $stmt->execute([$post_id, $filePath]);
+                $stmt = $pdo->prepare("INSERT INTO post_files (post_id, file_path, original_filename) VALUES (?, ?, ?)");
+                $stmt->execute([$post_id, $filePath, $originalFileName]);
                 $fileId = $pdo->lastInsertId();
             }
         }

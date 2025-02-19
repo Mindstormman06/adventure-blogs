@@ -321,6 +321,22 @@ form label {
     padding: 20px;
 }
 
+/* Comment Styling */
+.comment {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #f9f9f9;
+    border-radius: 5px;
+}
+
+.replies {
+    margin-left: 20px;
+    border-left: 2px solid #ddd;
+    padding-left: 10px;
+    margin-top: 10px;
+}
+
 
 
 
