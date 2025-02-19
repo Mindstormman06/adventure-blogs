@@ -66,7 +66,10 @@ $commentStmt->execute([$postId]);
 $comments = $commentStmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Function to organize threaded comments
-function buildCommentTree($comments, $parentId = null) {
+function buildCommentTree($comments, $parentId = null, $depth = 0, $maxDepth = 5) {
+    if ($depth >= $maxDepth) {
+        return [];
+    }
     $tree = [];
     foreach ($comments as $comment) {
         if ($comment['parent_id'] == $parentId) {
@@ -143,6 +146,15 @@ $postContent = $Parsedown->text($post['content']); // Convert Markdown to HTML
             }
         ?>
     </p>
+
+    <?php if (!empty($post['location_name']) && !empty($post['latitude']) && !empty($post['longitude'])): ?>
+        <p>
+            <strong>Location:</strong> 
+            <a href="view_location.php?lat=<?php echo $post['latitude']; ?>&lng=<?php echo $post['longitude']; ?>&name=<?php echo $post['location_name']; ?>">
+                <?php echo htmlspecialchars($post['location_name']); ?>
+            </a>
+        </p>
+    <?php endif; ?>
     <!-- Render Markdown -->
     <p><?php echo $postContent; ?></p>
      
@@ -174,14 +186,6 @@ $postContent = $Parsedown->text($post['content']); // Convert Markdown to HTML
         <?php endforeach; ?>
     <?php endif; ?>
 
-    <?php if (!empty($post['location_name']) && !empty($post['latitude']) && !empty($post['longitude'])): ?>
-        <p>
-            <strong>Location:</strong> 
-            <a href="view_location.php?lat=<?php echo $post['latitude']; ?>&lng=<?php echo $post['longitude']; ?>">
-                <?php echo htmlspecialchars($post['location_name']); ?>
-            </a>
-        </p>
-    <?php endif; ?>
 
     <?php if (isset($_SESSION['user_id']) && $user && ($_SESSION['username'] == $post['username'] || $user['role'] == 'admin')): ?>
         <p class="post_controls">
@@ -266,7 +270,7 @@ $postContent = $Parsedown->text($post['content']); // Convert Markdown to HTML
     <?php if (isset($_SESSION['user_id'])): ?>
         <form method="post">
             <textarea name="comment_text" required></textarea>
-            <button type="submit">Add Comment</button>
+            <button type="submit" class="btn btn-primary">Post Comment</button>
         </form>
     <?php else: ?>
         <p><a href="login.php">Login</a> to comment.</p>

@@ -19,6 +19,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $location_name = !empty($_POST['location_name']) ? $_POST['location_name'] : "Tagged Location";
     $latitude = !empty($_POST["latitude"]) ? $_POST["latitude"] : null;
     $longitude = !empty($_POST["longitude"]) ? $_POST["longitude"] : null;
+    $tagsInput = trim($_POST["tags"]);
+
 
     // Validate title and content
     if (empty($title) || empty($content)) {
@@ -100,6 +102,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $stmt = $pdo->prepare("INSERT INTO post_files (post_id, file_path) VALUES (?, ?)");
                 $stmt->execute([$post_id, $filePath]);
                 $fileId = $pdo->lastInsertId();
+            }
+        }
+
+        if (!empty($tagsInput)) {
+            $tagsArray = array_map('trim', explode(',', $tagsInput));
+            foreach ($tagsArray as $tag) {
+                $stmt = $pdo->prepare("SELECT id FROM tags WHERE name = ?");
+                $stmt->execute([$tag]);
+                $tag_id = $stmt->fetchColumn();
+            
+                if (!$tag_id) {
+                    $stmt = $pdo->prepare("INSERT INTO tags (name) VALUES (?)");
+                    $stmt->execute([$tag]);
+                    $tag_id = $pdo->lastInsertId();
+                }
+            
+                $pdo->prepare("INSERT INTO post_tags (post_id, tag_id) VALUES (?, ?)")->execute([$post_id, $tag_id]);
             }
         }
 
