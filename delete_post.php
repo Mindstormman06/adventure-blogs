@@ -18,6 +18,10 @@ $stmt1 = $pdo->prepare("SELECT tag_id FROM post_tags WHERE post_id = ?");
 $stmt1->execute([$post_id]);
 $tags = $stmt1->fetchAll(PDO::FETCH_ASSOC); // Fetch all associated tags
 
+$stmt2 = $pdo->prepare("SELECT file_path FROM post_files WHERE post_id = ?");
+$stmt2->execute([$post_id]);
+$files = $stmt2->fetchAll(PDO::FETCH_COLUMN); // Fetch all associated files
+
 
 
 // Ensure we found tags associated with this post
@@ -57,8 +61,11 @@ if (isset($_SESSION['user_id']) && ($_SESSION['user_id'] == $post['user_id']) ||
     $stmt5->execute([$post_id]);
 
     // Step 5: Delete the media file if it exists
-    if (!empty($post['image_path']) && file_exists($post['image_path'])) {
-        unlink($post['image_path']);
+
+    foreach ($files as $file) {
+        if (file_exists($file)) {
+            unlink($file);
+        }
     }
 
     // Redirect to the homepage after deletion

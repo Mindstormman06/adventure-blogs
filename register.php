@@ -27,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
         // Generate a unique verification token
-        $verificationToken = bin2hex(random_bytes(16)); // 32 character token
+        $verificationToken = bin2hex(random_bytes(16));
 
         // Insert user data into the database
         $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash, verification_token, role, verified) VALUES (?, ?, ?, ?, 'user', 0)");
@@ -82,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <label>Password:</label>
     <input type="password" name="password" required>
     <br>
-    <button type="submit">Register</button>
+    <button type="submit" class="btn btn-primary">Register</button>
 </form>
 
 <?php include 'footer.php'; ?>

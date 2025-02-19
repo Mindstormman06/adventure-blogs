@@ -1,0 +1,2 @@
+AddType audio/flac .flac
+AddType audio/x-flac .flac

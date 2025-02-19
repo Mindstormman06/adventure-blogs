@@ -17,7 +17,7 @@ if (isset($_SESSION['user_id'])) {
 }
 
 $videoFileTypes = ['mp4', 'ogg', 'webm', 'mov'];
-$audioFileTypes = ['mp3', 'wav', 'ogg', 'm4a'];
+$audioFileTypes = ['mp3', 'wav', 'ogg', 'm4a', 'flac'];
 
 $stmt = $pdo->query("
     SELECT posts.id, posts.title, posts.content, posts.image_path, users.username, posts.created_at, users.profile_photo, location_name, latitude, longitude
@@ -32,6 +32,12 @@ $stmt1 = $pdo->query("
     FROM tags
     INNER JOIN post_tags ON tags.id = post_tags.tag_id");
 $tags1 = $stmt1->fetchAll();
+
+$postFilesStmt = $pdo->query("SELECT post_id, file_path FROM post_files");
+$postFiles = [];
+while ($row = $postFilesStmt->fetch(PDO::FETCH_ASSOC)) {
+    $postFiles[$row['post_id']][] = $row['file_path'];
+}
 
 
 
@@ -90,6 +96,22 @@ function formatDate($datetime, $timezone = 'UTC') {
             font-style: normal; /* Ensure normal text style */
         }
 
+        .post-files {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-width: 100%;
+        }
+
+        .post-files img, 
+        .post-files video {
+            max-width: 300px;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+
     </style>
 </head>
 <body>
@@ -97,7 +119,7 @@ function formatDate($datetime, $timezone = 'UTC') {
     <h1>Recent Posts</h1>
 
     <?php foreach ($posts as $post): 
-        $fileExtension = pathinfo($post['image_path']);
+        $fileExtension = pathinfo($postFiles[$post['id']][0]);
         $isVideo = in_array(strtolower($fileExtension['extension']), $videoFileTypes);
         $isAudio = in_array(strtolower($fileExtension['extension']), $audioFileTypes);
         $isImage = !$isVideo && !$isAudio && !empty($post['image_path']);
@@ -129,8 +151,8 @@ function formatDate($datetime, $timezone = 'UTC') {
 
             <!-- Posted by user -->
             <p style="display: flex; align-items: center;" class="post-username">
-                <a href="<?php echo 'user_profile.php?username=' . $post['username']?>" class="post-user-link">
-                    <i>By <?php echo htmlspecialchars($post['username']);?></i>
+                <a href="<?php echo 'user_profile.php?username=' . $post['username']?>" class="post-user-link link-primary">
+                    <?php echo htmlspecialchars($post['username']);?>
                     <img src="<?php echo !empty($post['profile_photo']) ? htmlspecialchars($post['profile_photo']) : 'profile_photos/default_profile.png'; ?>" 
                         alt="Profile Photo" class="profile-photo-post">
                 </a>
@@ -156,25 +178,6 @@ function formatDate($datetime, $timezone = 'UTC') {
                     }
                 ?>
             </p>
-            <!-- Render Markdown -->
-            <p><?php echo $postContent; ?></p> 
-
-            <!-- Display media content -->
-            <?php if ($isVideo): ?>
-                <video style="max-width: 500px; max-height: 500px;" controls src="<?php echo htmlspecialchars($post['image_path']); ?>" autoplay muted loop>
-                    Your browser does not support the video tag.
-                </video>
-            <?php endif; ?>
-
-            <?php if ($isAudio): ?>
-                <audio controls src="<?php echo htmlspecialchars($post['image_path']); ?>">
-                    Your browser does not support the audio element.
-                </audio>
-            <?php endif; ?>
-
-            <?php if ($isImage): ?>
-                <img src="<?php echo htmlspecialchars($post['image_path']); ?>" alt="Failed to load image" style="max-width: 65%; max-height: 65%;" class="post-image">
-            <?php endif; ?>
 
             <!-- Display location if available -->
             <?php if (!empty($post['location_name']) && !empty($post['latitude']) && !empty($post['longitude'])): ?>
@@ -185,25 +188,57 @@ function formatDate($datetime, $timezone = 'UTC') {
                     </a>
                 </p>
             <?php endif; ?>
+            <!-- Render Markdown -->
+            <p><?php echo $postContent; ?></p> 
+
+            <!-- Display media content -->
+            <!-- <?php echo '<pre>'; print_r($postFiles); echo '</pre>'; ?> -->
+            <?php if (isset($postFiles[$post['id']]) && is_array($postFiles[$post['id']])): ?>
+                <?php foreach ($postFiles[$post['id']] as $file): ?>
+                    <?php 
+                        $fileExtension = pathinfo($file, PATHINFO_EXTENSION);
+                        $isVideo = in_array(strtolower($fileExtension), $videoFileTypes);
+                        $isAudio = in_array(strtolower($fileExtension), $audioFileTypes);
+                        $isImage = !$isVideo && !$isAudio;
+                    ?>
+
+                    <?php if ($isVideo): ?>
+                        <video style="max-width: 500px; max-height: 500px;" controls src="<?php echo htmlspecialchars($file); ?>" autoplay muted loop>
+                            Your browser does not support the video tag.
+                        </video>
+                    <?php endif; ?>
+
+                    <?php if ($isAudio): ?>
+                        <audio controls src="<?php echo htmlspecialchars($file); ?>" loop>
+                            Your browser does not support the audio element.
+                        </audio>
+                    <?php endif; ?>
+
+                    <?php if ($isImage): ?>
+                        <img src="<?php echo htmlspecialchars($file); ?>" alt="Failed to load image" style="max-width: 65%; max-height: 65%;" class="post-image">
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
+
+            
 
             <!-- View Comments Button -->
-            
-                <a class="" href="post.php?id=<?php echo $post['id']; ?>">
-                    <button type="button" class="text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">View Comments</button>
-                </a>
+            <a class="" href="post.php?id=<?php echo $post['id']; ?>">
+                <button type="button" class="btn btn-primary" style="margin-top: 10px">View Comments</button>
+            </a>
             
 
             <!-- Post Controls -->
             <?php if (isset($_SESSION['user_id']) && $user && ($_SESSION['username'] == $post['username'] || $user['role'] == 'admin')): ?>
             <div class="flex gap-2 mt-2 md:mt-0">
                 <a href="edit_post.php?id=<?php echo $post['id']; ?>">
-                    <button type="button" class="text-black bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-4 focus:ring-yellow-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:focus:ring-yellow-900">
+                    <button type="button" class="btn btn-warning">
                         Edit
                     </button>
                 </a>
 
                 <a href="delete_post.php?id=<?php echo $post['id']; ?>" onclick="return confirm('Are you sure you want to delete this post?');">
-                    <button type="button" class="text-white bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+                    <button type="button" class="btn btn-danger">
                         Delete
                     </button>
                 </a>

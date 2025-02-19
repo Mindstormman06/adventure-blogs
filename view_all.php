@@ -17,7 +17,7 @@ if (isset($_SESSION['user_id'])) {
 }
 
 $videoFileTypes = ['mp4', 'ogg', 'webm', 'mov'];
-$audioFileTypes = ['mp3', 'wav', 'ogg', 'm4a'];
+$audioFileTypes = ['mp3', 'wav', 'ogg', 'm4a', 'flac'];
 
 $stmt = $pdo->query("
     SELECT posts.id, posts.title, posts.content, posts.image_path, users.username, posts.created_at, users.profile_photo, location_name, latitude, longitude
@@ -33,6 +33,11 @@ $stmt1 = $pdo->query("
     INNER JOIN post_tags ON tags.id = post_tags.tag_id");
 $tags1 = $stmt1->fetchAll();
 
+$postFilesStmt = $pdo->query("SELECT post_id, file_path FROM post_files");
+$postFiles = [];
+while ($row = $postFilesStmt->fetch(PDO::FETCH_ASSOC)) {
+    $postFiles[$row['post_id']][] = $row['file_path'];
+}
 
 
 $Parsedown = new Parsedown(); // Initialize Parsedown
@@ -85,15 +90,18 @@ function formatDate($datetime, $timezone = 'UTC') {
             display: flex;
             flex-direction: column;
             justify-content: space-between; /* Ensures button stays at bottom */
-            height: 600px; /* Adjust as needed to fit your content */
+            height: 500px; /* Adjust as needed to fit your content */
             margin-bottom: 20px;
             border-radius: 15px;
             border: 2px solid #ddd;
             padding: 20px;
+            transition: transform 0.3s ease;
+
         }
 
         .post-content {
-            flex-grow: 1;
+            overflow: header;
+            text-overflow: ellipsis;
         }
 
         .post-tile:hover {
@@ -131,8 +139,9 @@ function formatDate($datetime, $timezone = 'UTC') {
         .post-image, .post-video {
             max-width: 275px;
             max-height: 200px;
-            object-fit: cover;
+            object-fit: contain;
             margin-top: 10px;
+            border-radius: 10px;
         }
 
         /* Button styling */
@@ -173,6 +182,43 @@ function formatDate($datetime, $timezone = 'UTC') {
             margin-bottom: 20px;
             font-size: 16px;
         }
+        /* Media Grid Container */
+        .media-grid {
+            display: grid;
+            gap: 5px;
+            width: 100%;
+            height: 200px; /* Consistent height for all media blocks */
+        }
+
+        /* Different layouts based on file count */
+        .grid-2x2 {
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+        }
+
+        .grid-1x2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .grid-1x1 {
+            grid-template-columns: 1fr;
+        }
+
+        /* Ensuring media elements have consistent size */
+        .media-item {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Crops images/videos instead of stretching */
+            border-radius: 10px;
+            aspect-ratio: 16/9;
+        }
+        audio.media-item {
+            height: 40px; /* Control the height of the audio player */
+            object-fit: contain; /* Keep audio controls contained */
+            border-radius: 5px;
+        }
+
+ 
 
 
 
@@ -184,69 +230,85 @@ function formatDate($datetime, $timezone = 'UTC') {
     <input type="text" id="search" class="search-bar" placeholder="Search posts...">
 
         
-        <?php if (count($posts) > 0): ?>
+    <?php if (count($posts) > 0): ?>
 
-            <div class="posts-grid">
-                <?php foreach ($posts as $post): ?>
+        <div class="posts-grid">
+            <?php foreach ($posts as $post): ?>
 
-                    <?php
-                        $fileExtension = pathinfo($post['image_path']);
-                        $isVideo = in_array(strtolower($fileExtension['extension']), $videoFileTypes);
-                        $isAudio = in_array(strtolower($fileExtension['extension']), $audioFileTypes);
-                        $isImage = !$isVideo && !$isAudio && !empty($post['image_path']);
-                    ?>
-                    <div class="post-tile" data-username="<?php echo strtolower($post['username']); ?>" data-tags="<?php foreach ($tags1 as $tag) { if ($tag['post_id'] == $post['id']) { echo strtolower($tag['name']) . ' '; } } ?>" data-location="<?php echo strtolower($post['location_name']); ?>" data-content="<?php echo strtolower(strip_tags($post['content'])); ?>">
+                <?php
+                    $fileExtension = pathinfo($postFiles[$post['id']][0]);
+                    $isVideo = in_array(strtolower($fileExtension['extension']), $videoFileTypes);
+                    $isAudio = in_array(strtolower($fileExtension['extension']), $audioFileTypes);
+                    $isImage = !$isVideo && !$isAudio && !empty($post['image_path']);
+                ?>
+                <div class="post-tile" data-username="<?php echo strtolower($post['username']); ?>" data-tags="<?php foreach ($tags1 as $tag) { if ($tag['post_id'] == $post['id']) { echo strtolower($tag['name']) . ' '; } } ?>" data-location="<?php echo strtolower($post['location_name']); ?>" data-content="<?php echo strtolower(strip_tags($post['content'])); ?>">
 
-                        <!-- Title -->
-                        <a href="<?php echo "post.php?id=" . $post['id']?>"><h3 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h3></a>
+                    <!-- Title -->
+                    <a href="<?php echo "post.php?id=" . $post['id']?>"><h3 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h3></a>
 
-                        <!-- Username -->
-                        <p style="display: flex; align-items: center;" class="post-username">
-                            <a href="<?php echo 'user_profile.php?username=' . $post['username']?>" class="post-user-link">
-                                <i>By <?php echo htmlspecialchars($post['username']);?></i>
-                                <img src="<?php echo !empty($post['profile_photo']) ? htmlspecialchars($post['profile_photo']) : 'profile_photos/default_profile.png'; ?>" 
-                                    alt="Profile Photo" class="profile-photo-post">
-                            </a>
-                        </p>
+                    <!-- Username -->
+                    <p style="display: flex; align-items: center;" class="post-username">
+                        <a href="<?php echo 'user_profile.php?username=' . $post['username']?>" class="post-user-link link-primary">
+                            <?php echo htmlspecialchars($post['username']);?>
+                            <img src="<?php echo !empty($post['profile_photo']) ? htmlspecialchars($post['profile_photo']) : 'profile_photos/default_profile.png'; ?>" 
+                                alt="Profile Photo" class="profile-photo-post">
+                        </a>
+                    </p>
 
-                        <!-- Posted Date -->
-                        <p><i><?php echo date('F j, Y', strtotime($post['created_at'])); ?></i></p>
+                    <!-- Posted Date -->
+                    <p><i><?php echo date('F j, Y', strtotime($post['created_at'])); ?></i></p>
 
-                        <!-- Tags -->
-                        <p class="post-tags"><strong>Tags:</strong> 
-                            <?php 
-                                foreach ($tags1 as $tags) {
-                                    if ($tags['post_id'] == $post['id']) {   
-                                        echo '#' . htmlspecialchars($tags['name']) . " ";
-                                    }
+                    <!-- Tags -->
+                    <p class="post-tags"><strong>Tags:</strong> 
+                        <?php 
+                            foreach ($tags1 as $tags) {
+                                if ($tags['post_id'] == $post['id']) {   
+                                    echo '#' . htmlspecialchars($tags['name']) . " ";
                                 }
-                            ?>
-                        </p>
+                            }
+                        ?>
+                    </p>
+                    
+                    <!-- Display media content -->
+                    <?php if (isset($postFiles[$post['id']]) && is_array($postFiles[$post['id']])): ?>
+                        <?php 
+                            $mediaCount = count($postFiles[$post['id']]); 
+                            $gridClass = $mediaCount >= 4 ? 'grid-2x2' : ($mediaCount == 2 ? 'grid-1x2' : 'grid-1x1');
+                        ?>
                         
-                        <!-- Display media content -->
-                        <?php if ($isVideo): ?>
-                            <video controls src="<?php echo htmlspecialchars($post['image_path']); ?>" autoplay muted loop class="post-video">
-                                Your browser does not support the video tag.
-                            </video>
-                        <?php endif; ?>
+                        <div class="media-grid <?php echo $gridClass; ?>">
+                            <?php foreach ($postFiles[$post['id']] as $file): ?>
+                                <?php 
+                                    $fileExtension = pathinfo($file, PATHINFO_EXTENSION);
+                                    $isVideo = in_array(strtolower($fileExtension), $videoFileTypes);
+                                    $isAudio = in_array(strtolower($fileExtension), $audioFileTypes);
+                                    $isImage = !$isVideo && !$isAudio;
+                                ?>
 
-                        <?php if ($isAudio): ?>
-                            <audio controls src="<?php echo htmlspecialchars($post['image_path']); ?>">
-                                Your browser does not support the audio element.
-                            </audio>
-                        <?php endif; ?>
+                                <?php if ($isVideo): ?>
+                                    <video src="<?php echo htmlspecialchars($file); ?>" class="media-item" autoplay muted loop></video>
+                                <?php endif; ?>
 
-                        <?php if ($isImage): ?>
-                            <img src="<?php echo htmlspecialchars($post['image_path']); ?>" alt="Failed to load image" class="post-image">
-                        <?php endif; ?>
+                                <?php if ($isAudio): ?>
+                                    <audio controls class="media-item" src="<?php echo htmlspecialchars($file); ?>" loop>
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                <?php endif; ?>
 
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        <?php else: ?>
-            <p>No posts found for this user.</p>
-        <?php endif; ?>
-    </div>
+                                <?php if ($isImage): ?>
+                                    <img src="<?php echo htmlspecialchars($file); ?>" class="media-item" alt="Image">
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php else: ?>
+        <p>No posts found for this user.</p>
+    <?php endif; ?>
+</div>
     
 </div>
 <?php include 'footer.php'; ?>

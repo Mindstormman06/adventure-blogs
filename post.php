@@ -12,7 +12,7 @@ if (!isset($_GET['id'])) {
 }
 
 $videoFileTypes = ['mp4', 'ogg', 'webm', 'mov'];
-$audioFileTypes = ['mp3', 'wav', 'ogg', 'm4a'];
+$audioFileTypes = ['mp3', 'wav', 'ogg', 'm4a', 'flac'];
 
 
 $postId = $_GET['id'];
@@ -48,6 +48,18 @@ if (!$post) {
     die("Post not found.");
 }
 
+$stmt1 = $pdo->query("
+    SELECT tags.id, tags.name, post_tags.post_id
+    FROM tags
+    INNER JOIN post_tags ON tags.id = post_tags.tag_id");
+$tags1 = $stmt1->fetchAll();
+
+$postFilesStmt = $pdo->query("SELECT post_id, file_path FROM post_files");
+$postFiles = [];
+while ($row = $postFilesStmt->fetch(PDO::FETCH_ASSOC)) {
+    $postFiles[$row['post_id']][] = $row['file_path'];
+}
+
 // Fetch Comments
 $commentStmt = $pdo->prepare("SELECT comments.*, users.username, users.profile_photo FROM comments JOIN users ON comments.user_id = users.id WHERE comments.post_id = ? AND deleted_at IS NULL ORDER BY comments.created_at ASC");
 $commentStmt->execute([$postId]);
@@ -67,7 +79,7 @@ function buildCommentTree($comments, $parentId = null) {
 
 $commentTree = buildCommentTree($comments);
 
-$fileExtension = pathinfo($post['image_path']);
+$fileExtension = pathinfo($postFiles[$post['id']][0]);
 $isVideo = in_array(strtolower($fileExtension['extension']), $videoFileTypes);
 $isAudio = in_array(strtolower($fileExtension['extension']), $audioFileTypes);
 $isImage = !$isVideo && !$isAudio && !empty($post['image_path']);
@@ -115,32 +127,52 @@ $postContent = $Parsedown->text($post['content']); // Convert Markdown to HTML
 <div class="container">
     <h2><?php echo htmlspecialchars($post['title']); ?></h2>
     <p style="display: flex; align-items: center;" class="post-username">
-                <a href="<?php echo 'user_profile.php?username=' . $post['username']?>" class="post-user-link">
-                    <i>By <?php echo htmlspecialchars($post['username']);?></i>
-                    <img src="<?php echo !empty($post['profile_photo']) ? htmlspecialchars($post['profile_photo']) : 'profile_photos/default_profile.png'; ?>" 
-                        alt="Profile Photo" class="profile-photo-post">
-                </a>
-            </p>
-    <p>
-    <?php echo $postContent; ?></p> <!-- Render Markdown -->
+        <a href="<?php echo 'user_profile.php?username=' . $post['username']?>" class="post-user-link">
+            <i>By <?php echo htmlspecialchars($post['username']);?></i>
+            <img src="<?php echo !empty($post['profile_photo']) ? htmlspecialchars($post['profile_photo']) : 'profile_photos/default_profile.png'; ?>" 
+                alt="Profile Photo" class="profile-photo-post">
+        </a>
+    </p>
+    <!-- Post Tags -->
+    <p class="post-tags"><strong>Tags:</strong> 
+        <?php 
+            foreach ($tags1 as $tags) {
+                if ($tags['post_id'] == $post['id']) {   
+                    echo '#' . htmlspecialchars($tags['name']) . " ";
+                }
+            }
+        ?>
+    </p>
+    <!-- Render Markdown -->
+    <p><?php echo $postContent; ?></p>
+     
 
-    <?php if ($isVideo): ?>
-        <video controls src="<?php echo htmlspecialchars($post['image_path']); ?>" style="max-width: 500px; max-height: 500px;" autoplay muted loop>
-            Your browser does not support the video tag.
-        </video>
-    <?php endif; ?>
+    <?php if (isset($postFiles[$post['id']]) && is_array($postFiles[$post['id']])): ?>
+        <?php foreach ($postFiles[$post['id']] as $file): ?>
+            <?php 
+                $fileExtension = pathinfo($file, PATHINFO_EXTENSION);
+                $isVideo = in_array(strtolower($fileExtension), $videoFileTypes);
+                $isAudio = in_array(strtolower($fileExtension), $audioFileTypes);
+                $isImage = !$isVideo && !$isAudio;
+            ?>
 
-    <?php if ($isAudio): ?>
-                <audio controls src="<?php echo htmlspecialchars($post['image_path']); ?>">
+            <?php if ($isVideo): ?>
+                <video style="max-width: 500px; max-height: 500px;" controls src="<?php echo htmlspecialchars($file); ?>" autoplay muted loop>
+                    Your browser does not support the video tag.
+                </video>
+            <?php endif; ?>
+
+            <?php if ($isAudio): ?>
+                <audio controls src="<?php echo htmlspecialchars($file); ?>" loop>
                     Your browser does not support the audio element.
                 </audio>
+            <?php endif; ?>
+
+            <?php if ($isImage): ?>
+                <img src="<?php echo htmlspecialchars($file); ?>" alt="Failed to load image" style="max-width: 65%; max-height: 65%;" class="post-image">
+            <?php endif; ?>
+        <?php endforeach; ?>
     <?php endif; ?>
-
-    <?php if ($isImage): ?>
-        <img src="<?php echo htmlspecialchars($post['image_path']); ?>" alt="Post Image" style="max-width: 500px; max-height: 500px;">
-    <?php endif; ?>
-
-
 
     <?php if (!empty($post['location_name']) && !empty($post['latitude']) && !empty($post['longitude'])): ?>
         <p>
@@ -174,19 +206,32 @@ $postContent = $Parsedown->text($post['content']); // Convert Markdown to HTML
             foreach ($comments as $comment): ?>
                 <div class="comment" id="comment-<?php echo $comment['id']; ?>" style="margin-left: <?php echo $comment['parent_id'] ? '40px' : '0'; ?>;">
                     <p>
-                        <strong><?php echo htmlspecialchars($comment['username']); ?></strong>
-                        <img src="<?php echo !empty($comment['profile_photo']) ? htmlspecialchars($comment['profile_photo']) : 'profile_photos/default_profile.png'; ?>" 
-                        alt="Profile Photo" class="profile-photo-post">
+                        <a href="<?php echo 'user_profile.php?username=' . $comment['username']?>" class="post-user-link link-primary">
+                            <strong><?php echo htmlspecialchars($comment['username']); ?></strong>
+                            <img src="<?php echo !empty($comment['profile_photo']) ? htmlspecialchars($comment['profile_photo']) : 'profile_photos/default_profile.png'; ?>" 
+                            alt="Profile Photo" class="profile-photo-post">
+                        </a>
                         <small><?php echo $comment['created_at']; ?></small>
                     </p>
                     <p><?php echo $Parsedown->text($comment['comment_text']); ?></p>
 
+                    <button onclick="replyToComment(<?php echo $comment['id']; ?>)" 
+                        class="text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+                        Reply
+                    </button>
+
                     <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $comment['user_id']): ?>
-                        <button onclick="editComment(<?php echo $comment['id']; ?>)">Edit</button>
-                        <button onclick="deleteComment(<?php echo $comment['id']; ?>)">Delete</button>
+                        <button onclick="editComment(<?php echo $comment['id']; ?>)" 
+                            class="text-black bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-4 focus:ring-yellow-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:focus:ring-yellow-900">
+                            Edit
+                        </button>
+                        <button onclick="deleteComment(<?php echo $comment['id']; ?>)"
+                            class="text-white bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+                            Delete
+                        </button>
                     <?php endif; ?>
 
-                    <button onclick="replyToComment(<?php echo $comment['id']; ?>)">Reply</button>
+                    
 
                     <div id="edit-form-<?php echo $comment['id']; ?>" style="display: none;">
                         <form method="post" action="edit_comment.php">

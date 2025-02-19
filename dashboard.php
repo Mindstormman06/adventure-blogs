@@ -16,8 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $title = trim($_POST["title"]);
     $content = trim($_POST["content"]);
     $user_id = $_SESSION["user_id"];
-    $imagePath = null;
-    $location_name = trim($_POST["location_name"]);
+    $location_name = !empty($_POST['location_name']) ? $_POST['location_name'] : "Tagged Location";
     $latitude = !empty($_POST["latitude"]) ? $_POST["latitude"] : null;
     $longitude = !empty($_POST["longitude"]) ? $_POST["longitude"] : null;
 
@@ -29,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         // Handle Image Upload
         if (!empty($_FILES["image"]["name"])) {
-            $maxFileSize = 32 * 1024 * 1024; // 32MB max
+            $maxFileSize = 100 * 1024 * 1024; // 32MB max
             if ($_FILES["image"]["size"] > $maxFileSize) {
                 echo "<p>Error: File is too large.</p>";
                 exit;
@@ -40,8 +39,70 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         // Insert post into database
-        $stmt = $pdo->prepare("INSERT INTO posts (user_id, title, content, image_path, location_name, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$user_id, $title, $content, $imagePath, $location_name, $latitude, $longitude]);
+        $stmt = $pdo->prepare("INSERT INTO posts (user_id, title, content, location_name, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$user_id, $title, $content, $location_name, $latitude, $longitude]);
+        $post_id = $pdo->lastInsertId();
+
+        $allowedTypes = [
+            "image/jpeg", "image/png", "image/gif",
+            "video/mp4", "video/webm", "video/quicktime",
+            "audio/mpeg", "audio/wav", "audio/ogg", "audio/mp4", "audio/x-m4a", "audio/flac"
+        ];
+        $maxFileSize = 100 * 1024 * 1024; // 32MB max per file
+        $targetDir = "uploads/";
+
+        if (!empty($_FILES["images"]["name"][0])) {
+            $totalFiles = count($_FILES["images"]["name"]);
+            if ($totalFiles > 10) {
+                echo "<p>Error: You can upload a maximum of 10 files.</p>";
+                exit;
+            }
+
+            for ($i = 0; $i < $totalFiles; $i++) {
+                if ($_FILES["images"]["size"][$i] > $maxFileSize) {
+                    echo "<p>Error: File " . $_FILES["images"]["name"][$i] . " is too large.</p>";
+                    exit;
+                }
+
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $fileType = finfo_file($finfo, $_FILES["images"]["tmp_name"][$i]);
+                finfo_close($finfo);
+                if (!in_array($fileType, $allowedTypes)) {
+                    echo "<p>Error: Invalid file type for " . $_FILES["images"]["name"][$i] . ".</p>";
+                    exit;
+                }
+
+                $fileExt = pathinfo($_FILES["images"]["name"][$i], PATHINFO_EXTENSION);
+
+                $customFileName = $post_id . "-" . time() . "-" . $i . "." . $fileExt;
+
+                $filePath = $targetDir . $customFileName;
+                move_uploaded_file($_FILES["images"]["tmp_name"][$i], $filePath);
+
+                // Convert FLAC to MP3
+
+                // if ($fileExt === "flac") {
+                //     $mp3FilePath = str_replace(".flac", ".mp3", $filePath);
+                //     $ffmegPath = "\"C:\\ffmpeg-master-latest-win64-gpl\\bin\\ffmpeg.exe\"";
+                //     $ffmpegCmd = $ffmegPath . " -i " . escapeshellarg($filePath) . " -ab 192k -y " . escapeshellarg($mp3FilePath) . " 2>&1";
+                //     shell_exec($ffmpegCmd);
+        
+                //     echo "<pre>";
+                //     echo "Command: " . $ffmpegCmd . "\n";
+
+                //     unlink($filePath);
+
+                //     $filePath = $mp3FilePath;
+                   
+                // }
+
+                // Insert file path into post_files table
+                $stmt = $pdo->prepare("INSERT INTO post_files (post_id, file_path) VALUES (?, ?)");
+                $stmt->execute([$post_id, $filePath]);
+                $fileId = $pdo->lastInsertId();
+            }
+        }
+
 
         echo "<p>Post uploaded successfully! <a href='index.php'>View posts</a></p>";
         header("Location: index.php");
@@ -53,38 +114,116 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <div class="container">
     <h2>Create a New Post</h2>
     <form method="post" enctype="multipart/form-data" onsubmit="return validatePost()">
-        <label>Title:</label>
-        <input type="text" name="title" id="title" required>
+       
+        <!-- Title -->
+        <div class="form-group">
+            <label>Title:</label>
+            <input type="text" name="title" id="title" required>
+        </div>
 
-        <label>Content:</label>
-        <textarea name="content" id="content" required maxlength="1000"></textarea>
-        <p id="content-char-count">0/1000 characters used</p>
+        <!-- Content -->
+        <div class="form-group">
+            <label>Content:</label>
+            <textarea name="content" id="content" required maxlength="1000"></textarea>
+            <small id="content-char-count">0/1000 characters used</small>
+            <br>
+            <small><i>Markdown is supported! Click <a href="https://github.com/adam-p/markdown-here/wiki/markdown-cheatsheet">here</a> for a guide on using Markdown</i></small>
+        </div>
 
-        <p><i>Markdown is supported! Click <a href="https://github.com/adam-p/markdown-here/wiki/markdown-cheatsheet">here</a> for a guide on using Markdown</i></p>
+        <!-- File Upload -->
+        <div class="form-group">
+            <label>Upload Media (max 10 files):</label>
+            <input type="file" name="images[]" id="file_input" multiple accept="image/*,video/*, audio/*" required>
+            <div id="fileErrors" style="color: red; margin-top: 10px;"></div>
+            <div id="filePreview" style="margin-top: 10px;"></div>
+        </div>
 
-        <label>Upload Media:</label>
-        <input type="file" name="image" required>
-
-        <label>Tags (comma-separated):</label>
-        <input type="text" name="tags">
+        <!-- Tags -->
+        <div class="form-group">
+            <label>Tags (comma-separated):</label>
+            <input type="text" name="tags">
+        </div>    
 
         <!-- Location Selection -->
-        <label>Location Name:</label>
-        <input type="text" name="location_name" id="location_name" placeholder="Enter a location name" value="Tagged Location">
+        <div class="form-group">
+            <label>Location Name:</label>
+            <input type="text" name="location_name" id="location_name" placeholder="Enter a location name" value="Tagged Location">
+        </div>
 
-        <label>Select Location on Map:</label>
-        <div id="map" style="height: 400px;"></div>
-        <input type="hidden" name="latitude" id="latitude">
-        <input type="hidden" name="longitude" id="longitude">
+        <div class="form-group">
+            <label>Select Location on Map:</label>
+            <div id="map" style="height: 400px;"></div>
+            <input type="hidden" name="latitude" id="latitude">
+            <input type="hidden" name="longitude" id="longitude">
+        </div>
 
-        <button type="submit">Post</button>
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-success" style="margin-top: 20px">Post</button>
+
     </form>
 </div>
 
 <!-- Leaflet.js for the map -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    document.getElementById("file_input").addEventListener("change", function (event) {
+        var fileErrorsDiv = document.getElementById("fileErrors");
+        var filePreviewDiv = document.getElementById("filePreview");
+        fileErrorsDiv.innerHTML = ""; // Clear previous errors
+        filePreviewDiv.innerHTML = ""; // Clear previous previews
 
+        var files = event.target.files;
+        var allowedTypes = [
+            "image/jpeg", "image/png", "image/gif",
+            "video/mp4", "video/webm", "video/quicktime",
+            "audio/mpeg", "audio/wav", "audio/ogg", "audio/mp4", "audio/x-m4a", "audio/x-flac"
+        ];
+        var maxFileSize = 100 * 1024 * 1024; // 32MB per file
+        var maxFiles = 10;
+
+        if (files.length > maxFiles) {
+            fileErrorsDiv.innerHTML = `<p>Error: You can upload a maximum of ${maxFiles} files.</p>`;
+            event.target.value = ""; // Reset file input
+            return;
+        }
+
+        for (var i = 0; i < files.length; i++) {
+            var file = files[i];
+
+            // Check file type
+            if (!allowedTypes.includes(file.type)) {
+                fileErrorsDiv.innerHTML += `<p>Error: ${file.name} is not an allowed file type.</p>`;
+                event.target.value = ""; // Reset file input
+                return;
+            }
+
+            // Check file size
+            if (file.size > maxFileSize) {
+                fileErrorsDiv.innerHTML += `<p>Error: ${file.name} exceeds the 100MB limit.</p>`;
+                event.target.value = ""; // Reset file input
+                return;
+            }
+
+            // OPTIONAL: Show image/video previews
+            if (file.type.startsWith("image/")) {
+                var img = document.createElement("img");
+                img.src = URL.createObjectURL(file);
+                img.style.maxWidth = "100px";
+                img.style.margin = "5px";
+                filePreviewDiv.appendChild(img);
+            } else if (file.type.startsWith("video/")) {
+                var vid = document.createElement("video");
+                vid.src = URL.createObjectURL(file);
+                vid.controls = true;
+                vid.style.maxWidth = "150px";
+                vid.style.margin = "5px";
+                filePreviewDiv.appendChild(vid);
+            }
+        }
+    });
+
+</script>
 <script>
     // Real-time content length display
     document.getElementById("content").addEventListener("input", function() {
@@ -95,7 +234,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     function validatePost() {
         var title = document.getElementById("title").value;
         var content = document.getElementById("content").value;
-        
+        var fileErrorsDiv = document.getElementById("fileErrors");
+
         if (title.trim() === "" || content.trim() === "") {
             alert("Both the title and content must be filled in.");
             return false;
@@ -103,6 +243,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if (content.length > 1000) {
             alert("Content exceeds the 1000-character limit.");
+            return false;
+        }
+
+        if (fileErrorsDiv.innerHTML !== "") {
+            alert("Please fix file upload errors before submitting.");
             return false;
         }
 
