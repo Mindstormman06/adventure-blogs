@@ -95,20 +95,31 @@ function formatDate($datetime, $timezone = 'UTC') {
             color: black; /* Make text black */
             font-style: normal; /* Ensure normal text style */
         }
-
-        .post-files {
+        .post-media {
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            max-width: 100%;
+            flex-wrap: wrap; /* Wrap media if too many */
+            gap: 10px; /* Space between items */
+            justify-content: left;
+            align-items: center;
         }
 
-        .post-files img, 
-        .post-files video {
-            max-width: 300px;
-            max-height: 300px;
-            object-fit: cover;
-            border-radius: 8px;
+        .post-media img {
+            max-width: 100%; /* Ensure it doesn’t overflow */
+            height: auto; /* Maintain aspect ratio */
+            max-height: 300px; /* Prevent huge images */
+            object-fit: contain; /* Scale properly */
+            border-radius: 10px; /* Optional rounded corners */
+        }
+
+        .post-media video {
+            max-width: 100%; 
+            max-height: 300px; /* Same height constraint */
+            border-radius: 10px;
+        }
+
+        .post-media audio {
+            width: 100%; /* Ensure it spans container */
+            max-width: 400px; /* Prevent overly wide players */
         }
 
 
@@ -192,33 +203,31 @@ function formatDate($datetime, $timezone = 'UTC') {
             <p><?php echo $postContent; ?></p> 
 
             <!-- Display media content -->
-            <!-- <?php echo '<pre>'; print_r($postFiles); echo '</pre>'; ?> -->
-            <?php if (isset($postFiles[$post['id']]) && is_array($postFiles[$post['id']])): ?>
-                <?php foreach ($postFiles[$post['id']] as $file): ?>
-                    <?php 
-                        $fileExtension = pathinfo($file, PATHINFO_EXTENSION);
-                        $isVideo = in_array(strtolower($fileExtension), $videoFileTypes);
-                        $isAudio = in_array(strtolower($fileExtension), $audioFileTypes);
-                        $isImage = !$isVideo && !$isAudio;
-                    ?>
+            <div class="post-media">
+                <?php if (isset($postFiles[$post['id']]) && is_array($postFiles[$post['id']])): ?>
+                    <?php foreach ($postFiles[$post['id']] as $file): ?>
+                        <?php 
+                            $fileExtension = pathinfo($file, PATHINFO_EXTENSION);
+                            $isVideo = in_array(strtolower($fileExtension), $videoFileTypes);
+                            $isAudio = in_array(strtolower($fileExtension), $audioFileTypes);
+                            $isImage = !$isVideo && !$isAudio;
+                        ?>
 
-                    <?php if ($isVideo): ?>
-                        <video style="max-width: 500px; max-height: 500px;" controls src="<?php echo htmlspecialchars($file); ?>" autoplay muted loop>
-                            Your browser does not support the video tag.
-                        </video>
-                    <?php endif; ?>
+                        <?php if ($isVideo): ?>
+                            <video controls src="<?php echo htmlspecialchars($file); ?>" autoplay muted loop></video>
+                        <?php endif; ?>
 
-                    <?php if ($isAudio): ?>
-                        <audio controls src="<?php echo htmlspecialchars($file); ?>" loop>
-                            Your browser does not support the audio element.
-                        </audio>
-                    <?php endif; ?>
+                        <?php if ($isAudio): ?>
+                            <audio controls src="<?php echo htmlspecialchars($file); ?>" loop></audio>
+                        <?php endif; ?>
 
-                    <?php if ($isImage): ?>
-                        <img src="<?php echo htmlspecialchars($file); ?>" alt="Failed to load image" style="max-width: 65%; max-height: 65%;" class="post-image">
-                    <?php endif; ?>
-                <?php endforeach; ?>
-            <?php endif; ?>
+                        <?php if ($isImage): ?>
+                            <img src="<?php echo htmlspecialchars($file); ?>" alt="Uploaded Image">
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+
 
             
 
