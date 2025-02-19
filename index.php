@@ -1,12 +1,15 @@
 <?php include 'header.php'; ?>
 <?php include 'config.php'; ?>
 <?php
+// Start Session if it's not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+// Requirements
 require 'config.php';
 require 'vendor\erusev\parsedown\Parsedown.php'; // Include Parsedown for Markdown support
 
+// Fetch user info if logged in
 $user = null;
 $userRole = null;
 if (isset($_SESSION['user_id'])) {
@@ -16,9 +19,11 @@ if (isset($_SESSION['user_id'])) {
     $userRole = $user ? $user['role'] : null;
 }
 
+// Allowed file types for media content
 $videoFileTypes = ['mp4', 'ogg', 'webm', 'mov'];
 $audioFileTypes = ['mp3', 'wav', 'ogg', 'm4a', 'flac'];
 
+// Fetch all posts
 $stmt = $pdo->query("
     SELECT posts.id, posts.title, posts.content, posts.image_path, users.username, posts.created_at, users.profile_photo, location_name, latitude, longitude
     FROM posts 
@@ -27,23 +32,24 @@ $stmt = $pdo->query("
 ");
 $posts = $stmt->fetchAll();
 
+// Fetch all tags
 $stmt1 = $pdo->query("
     SELECT tags.id, tags.name, post_tags.post_id
     FROM tags
     INNER JOIN post_tags ON tags.id = post_tags.tag_id");
 $tags1 = $stmt1->fetchAll();
 
+// Fetch all post files
 $postFilesStmt = $pdo->query("SELECT post_id, file_path FROM post_files");
 $postFiles = [];
 while ($row = $postFilesStmt->fetch(PDO::FETCH_ASSOC)) {
     $postFiles[$row['post_id']][] = $row['file_path'];
 }
 
-
-
+// Initialize Parsedown
 $Parsedown = new Parsedown(); // Initialize Parsedown
 
-// Helper functions
+// Function to calculate how long ago a post was submitted
 function timeAgo($datetime, $timezone = 'UTC') {
     $now = new DateTime("now", new DateTimeZone($timezone));
     $postTime = new DateTime($datetime, new DateTimeZone($timezone));
@@ -71,72 +77,27 @@ function timeAgo($datetime, $timezone = 'UTC') {
     return "Just now";
 }
 
+// Function to format date as YYYY/MM/DD
 function formatDate($datetime, $timezone = 'UTC') {
     $date = new DateTime($datetime, new DateTimeZone($timezone));
     return $date->format('Y/m/d');  // Format as YYYY/MM/DD
 }
 ?>
-<head>
-    <style>
-
-        .profile-photo-post {
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-left: 5px; /* Space between username and profile picture */
-            border: 2px solid black;
-        }
-
-        .post-user-link {
-            display: flex;
-            align-items: center;
-            text-decoration: none; /* Remove underline */
-            color: black; /* Make text black */
-            font-style: normal; /* Ensure normal text style */
-        }
-        .post-media {
-            display: flex;
-            flex-wrap: wrap; /* Wrap media if too many */
-            gap: 10px; /* Space between items */
-            justify-content: left;
-            align-items: center;
-        }
-
-        .post-media img {
-            max-width: 100%; /* Ensure it doesn’t overflow */
-            height: auto; /* Maintain aspect ratio */
-            max-height: 300px; /* Prevent huge images */
-            object-fit: contain; /* Scale properly */
-            border-radius: 10px; /* Optional rounded corners */
-        }
-
-        .post-media video {
-            max-width: 100%; 
-            max-height: 300px; /* Same height constraint */
-            border-radius: 10px;
-        }
-
-        .post-media audio {
-            width: 100%; /* Ensure it spans container */
-            max-width: 400px; /* Prevent overly wide players */
-        }
-
-
-    </style>
-</head>
 <body>
 <div class="container">
     <h1>Recent Posts</h1>
 
-    <?php foreach ($posts as $post): 
+    <?php foreach ($posts as $post):
+        // Check type of uploaded files
         $fileExtension = pathinfo($postFiles[$post['id']][0]);
         $isVideo = in_array(strtolower($fileExtension['extension']), $videoFileTypes);
         $isAudio = in_array(strtolower($fileExtension['extension']), $audioFileTypes);
         $isImage = !$isVideo && !$isAudio && !empty($post['image_path']);
+        
+        // Set User ID
         $postUserID = $post['username'];
 
-
+        // Get the post tags
         foreach ($tags1 as $tags) {
             if ($tags['post_id'] == $post['id']) {
                 $postTag = $tags;
@@ -199,6 +160,7 @@ function formatDate($datetime, $timezone = 'UTC') {
                     </a>
                 </p>
             <?php endif; ?>
+
             <!-- Render Markdown -->
             <p><?php echo $postContent; ?></p> 
 
@@ -228,15 +190,11 @@ function formatDate($datetime, $timezone = 'UTC') {
                 <?php endif; ?>
             </div>
 
-
-            
-
             <!-- View Comments Button -->
             <a class="" href="post.php?id=<?php echo $post['id']; ?>">
                 <button type="button" class="btn btn-primary" style="margin-top: 10px">View Comments</button>
             </a>
             
-
             <!-- Post Controls -->
             <?php if (isset($_SESSION['user_id']) && $user && ($_SESSION['username'] == $post['username'] || $user['role'] == 'admin')): ?>
             <div class="flex gap-2 mt-2 md:mt-0">
@@ -259,7 +217,7 @@ function formatDate($datetime, $timezone = 'UTC') {
 
 <?php include 'footer.php'; ?>
 
-<!-- Add your JS here -->
+<!-- Script to display the time difference in a human-readable format -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     document.querySelectorAll(".post-time").forEach(function(element) {

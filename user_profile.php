@@ -8,10 +8,12 @@ if (!isset($_GET['username'])) {
     die("User not found.");
 }
 
-
+// Approved file types for media content
 $videoFileTypes = ['mp4', 'ogg', 'webm', 'mov'];
 $audioFileTypes = ['mp3', 'wav', 'ogg', 'm4a', 'flac'];
-$username = $_GET['username']; // Get the username from the URL
+
+// Get the username from the URL
+$username = $_GET['username']; 
 
 // Fetch user information
 $stmt = $pdo->prepare("SELECT id, username, email, profile_photo, instagram_link, website_link FROM users WHERE username = ?");
@@ -44,183 +46,6 @@ while ($row = $postFilesStmt->fetch(PDO::FETCH_ASSOC)) {
 $Parsedown = new Parsedown(); // Initialize Parsedown
 
 ?>
-
-<head>
-    <style>
-
-        .post-tile:hover {
-            transform: translateY(-5px);
-        }
-
-        /* Profile Section */
-        .profile-container {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .profile-photo {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #ddd;
-            margin-bottom: 10px;
-        }
-
-        .profile-links a {
-            display: inline-block;
-            margin: 0 10px;
-            color: #007bff;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .profile-links a:hover {
-            text-decoration: underline;
-        }
-
-        /* Container for the posts grid */
-        .posts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        /* Individual post tile styling */
-        .post-tile {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between; /* Ensures button stays at bottom */
-            height: 500px; /* Adjust as needed to fit your content */
-            margin-bottom: 20px;
-            border-radius: 15px;
-            border: 2px solid #ddd;
-            padding: 20px;
-            transition: transform 0.3s ease;
-
-        }
-
-        .post-content {
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .post-tile:hover {
-            transform: translateY(-5px);
-        }
-
-        /* Profile Section */
-        .profile-container {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .profile-photo {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #ddd;
-            margin-bottom: 10px;
-        }
-
-        .profile-links a {
-            display: inline-block;
-            margin: 0 10px;
-            color: #007bff;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .profile-links a:hover {
-            text-decoration: underline;
-        }
-
-        /* Image inside post tile */
-        .post-image, .post-video {
-            max-width: 275px;
-            max-height: 200px;
-            object-fit: cover;
-            margin-top: 10px;
-            border-radius: 10px;
-        }
-
-        /* Button styling */
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-
-        .btn:hover {
-            background-color: #0056b3;
-        }
-
-        .profile-photo-post {
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-left: 5px; /* Space between username and profile picture */
-            border: 2px solid black;
-        }
-
-        .post-user-link {
-            display: flex;
-            align-items: center;
-            text-decoration: none; /* Remove underline */
-            color: black; /* Make text black */
-            font-style: normal; /* Ensure normal text style */
-        }
-
-        .search-bar {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 20px;
-            font-size: 16px;
-        }
-        /* Media Grid Container */
-        .media-grid {
-            display: grid;
-            gap: 5px;
-            width: 100%;
-            height: 200px; /* Consistent height for all media blocks */
-        }
-
-        /* Different layouts based on file count */
-        .grid-2x2 {
-            grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: repeat(2, 1fr);
-        }
-
-        .grid-1x2 {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .grid-1x1 {
-            grid-template-columns: 1fr;
-        }
-
-        /* Ensuring media elements have consistent size */
-        .media-item {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Crops images/videos instead of stretching */
-            border-radius: 10px;
-            aspect-ratio: 16/9;
-        }
-        audio.media-item {
-            height: 40px; /* Control the height of the audio player */
-            object-fit: contain; /* Keep audio controls contained */
-            border-radius: 5px;
-        }
-       
-    </style>
-</head>
 
 <div class="container">
 

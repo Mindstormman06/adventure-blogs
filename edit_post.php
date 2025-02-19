@@ -3,15 +3,18 @@ include 'auth.php';
 include 'config.php';
 include 'header.php';
 
+// Check if post exists
 if (!isset($_GET['id'])) {
     die("Post ID missing.");
 }
 
+// Fetch post data
 $post_id = $_GET['id'];
 $stmt = $pdo->prepare("SELECT * FROM posts WHERE id = ?");
 $stmt->execute([$post_id]);
 $post = $stmt->fetch(PDO::FETCH_ASSOC);
 
+// Check if post belongs to the current user or if the user is an admin
 if (!$post || ($post['user_id'] != $_SESSION['user_id'] && $_SESSION['role'] !== 'admin')) {
     die("Access denied.");
 }
@@ -54,7 +57,7 @@ function getTags($tags1, $post1) {
 
     return implode(", ", $postTagsArray);
 }
-
+// Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $title = trim($_POST["title"]);
     $content = trim($_POST["content"]);
@@ -63,24 +66,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $longitude = !empty($_POST["longitude"]) ? $_POST["longitude"] : null;
     $tagsInput = trim($_POST["tags"]);
 
-    // Handle multiple file uploads
+    // Allowed File Data
     $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/webm', 'video/quicktime', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/x-m4a', 'audio/x-flac', 'audio/flac'];
     $maxFileSize = 100 * 1024 * 1024; // MB max per file
     $uploadDir = "uploads/";
 
+    // Handle file validation
     if (!empty($_FILES["images"]["name"][0])) {
         foreach ($_FILES["images"]["tmp_name"] as $key => $tmp_name) {
             $fileType = mime_content_type($tmp_name);
             $fileSize = $_FILES["images"]["size"][$key];
-
             if (!in_array($fileType, $allowedTypes) || $fileSize > $maxFileSize) {
                 echo "<p>Error: Invalid file type or size too large.</p>";
             }
 
+            // Get file extension
             $fileExt = pathinfo($_FILES["images"]["name"][$key], PATHINFO_EXTENSION);
-            $customFileName = $post_id . "-" . time() . "-" . $key . "." . $fileExt;
-            $filePath = $uploadDir . $customFileName;
 
+            // Rename file to include post ID and timestamp
+            $customFileName = $post_id . "-" . time() . "-" . $key . "." . $fileExt;
+            
+            // Move file to uploads directory
+            $filePath = $uploadDir . $customFileName;
             move_uploaded_file($tmp_name, $filePath);
 
             $pdo->prepare("INSERT INTO post_files (post_id, file_path) VALUES (?, ?)")->execute([$post_id, $filePath]);
@@ -169,12 +176,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="text" name="tags" value="<?php echo htmlspecialchars(getTags($tags, $post)); ?>">
         </div>
 
-        <!-- Location Selection -->
+        <!-- Location Name -->
         <div class="form-group">
             <label>Location Name:</label>
             <input type="text" name="location_name" id="location_name" class="form-control" value="<?php echo htmlspecialchars($post['location_name']); ?>" placeholder="Enter a location name">
         </div>
         
+        <!-- Location Selection -->
         <div class="form-group">
             <label>Select Location on Map:</label>
             <div id="map" style="height: 400px;"></div>
@@ -191,6 +199,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!-- Leaflet.js for the map -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<!-- File Validation Script -->
 <script>
     document.getElementById("file_input").addEventListener("change", function (event) {
         var fileErrorsDiv = document.getElementById("fileErrors");
@@ -249,6 +259,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     });
 
 </script>
+
+<!-- Post Validation Script + Map Script -->
 <script>
     // Real-time content length display
     document.getElementById("content").addEventListener("input", function() {

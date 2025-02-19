@@ -12,6 +12,7 @@ if ($user['role'] !== 'user' && $user['role'] !== 'admin') {
     die("Access denied. Only registered users can create posts.");
 }
 
+// Handle Post Submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $title = trim($_POST["title"]);
     $content = trim($_POST["content"]);
@@ -30,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         // Handle Image Upload
         if (!empty($_FILES["image"]["name"])) {
-            $maxFileSize = 100 * 1024 * 1024; // 32MB max
+            $maxFileSize = 100 * 1024 * 1024; // 100MB max
             if ($_FILES["image"]["size"] > $maxFileSize) {
                 echo "<p>Error: File is too large.</p>";
                 exit;
@@ -45,6 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->execute([$user_id, $title, $content, $location_name, $latitude, $longitude]);
         $post_id = $pdo->lastInsertId();
 
+        // Allowed File Data
         $allowedTypes = [
             "image/jpeg", "image/png", "image/gif",
             "video/mp4", "video/webm", "video/quicktime",
@@ -53,6 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $maxFileSize = 100 * 1024 * 1024; // 32MB max per file
         $targetDir = "uploads/";
 
+        // Handle file validation
         if (!empty($_FILES["images"]["name"][0])) {
             $totalFiles = count($_FILES["images"]["name"]);
             if ($totalFiles > 10) {
@@ -61,11 +64,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
 
             for ($i = 0; $i < $totalFiles; $i++) {
+
+                // Check file size
                 if ($_FILES["images"]["size"][$i] > $maxFileSize) {
                     echo "<p>Error: File " . $_FILES["images"]["name"][$i] . " is too large.</p>";
                     exit;
                 }
 
+                // Check file type
                 $finfo = finfo_open(FILEINFO_MIME_TYPE);
                 $fileType = finfo_file($finfo, $_FILES["images"]["tmp_name"][$i]);
                 finfo_close($finfo);
@@ -74,14 +80,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     exit;
                 }
 
+                // Get file extension
                 $fileExt = pathinfo($_FILES["images"]["name"][$i], PATHINFO_EXTENSION);
 
+                // Rename file to include post ID and timestamp
                 $customFileName = $post_id . "-" . time() . "-" . $i . "." . $fileExt;
 
+                // Move file to uploads directory
                 $filePath = $targetDir . $customFileName;
                 move_uploaded_file($_FILES["images"]["tmp_name"][$i], $filePath);
 
-                // Convert FLAC to MP3
+                // Convert FLAC to MP3 (UNCOMMENT IF NEEDED)
 
                 // if ($fileExt === "flac") {
                 //     $mp3FilePath = str_replace(".flac", ".mp3", $filePath);
@@ -105,6 +114,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
 
+        // Insert tags into database
         if (!empty($tagsInput)) {
             $tagsArray = array_map('trim', explode(',', $tagsInput));
             foreach ($tagsArray as $tag) {
@@ -163,12 +173,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="text" name="tags">
         </div>    
 
-        <!-- Location Selection -->
+        <!-- Location Name -->
         <div class="form-group">
             <label>Location Name:</label>
             <input type="text" name="location_name" id="location_name" placeholder="Enter a location name" value="Tagged Location">
         </div>
 
+        <!-- Location Selection -->
         <div class="form-group">
             <label>Select Location on Map:</label>
             <div id="map" style="height: 400px;"></div>
@@ -185,6 +196,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!-- Leaflet.js for the map -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<!-- File Validation Script -->
 <script>
     document.getElementById("file_input").addEventListener("change", function (event) {
         var fileErrorsDiv = document.getElementById("fileErrors");
@@ -243,6 +256,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     });
 
 </script>
+
+<!-- Post Validation Script + Map Script -->
 <script>
     // Real-time content length display
     document.getElementById("content").addEventListener("input", function() {

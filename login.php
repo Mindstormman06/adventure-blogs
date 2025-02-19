@@ -7,13 +7,17 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    // Get the username and password from the form
     $username = trim($_POST["username"]);
     $password = $_POST["password"];
 
+    // Check if the user exists
     $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
     $stmt->execute([$username]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
+    // Check if the user exists and the password is correct
     if ($user && password_verify($password, $user['password_hash'])) {
         if ($user['verified'] == 0) {
             echo "<p>Your account is not verified. Please check your email for the verification link.</p> <a href='login.php'>Back to login</a>";
@@ -33,12 +37,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <h2>Login</h2>
 <form method="post">
+
+    <!-- Username field -->
     <label>Username:</label>
     <input type="text" name="username" required>
     <br>
+
+    <!-- Password field -->
     <label>Password:</label>
     <input type="password" name="password" required>
     <br>
+
     <button type="submit" class="btn btn-primary">Login</button>
 </form>
 

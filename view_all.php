@@ -1,14 +1,19 @@
 <?php include 'header.php'; ?>
 <?php include 'config.php'; ?>
 <?php
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
 require 'config.php';
 require 'vendor\erusev\parsedown\Parsedown.php'; // Include Parsedown for Markdown support
 
+
 $user = null;
 $userRole = null;
+
+// If user is logged in, fetch their user information
 if (isset($_SESSION['user_id'])) {
     $stmt = $pdo->prepare("SELECT role FROM users WHERE id = ?");
     $stmt->execute([$_SESSION['user_id']]);
@@ -16,9 +21,11 @@ if (isset($_SESSION['user_id'])) {
     $userRole = $user ? $user['role'] : null;
 }
 
+// Approved file types for media content
 $videoFileTypes = ['mp4', 'ogg', 'webm', 'mov'];
 $audioFileTypes = ['mp3', 'wav', 'ogg', 'm4a', 'flac'];
 
+// Fetch all posts
 $stmt = $pdo->query("
     SELECT posts.id, posts.title, posts.content, posts.image_path, users.username, posts.created_at, users.profile_photo, location_name, latitude, longitude
     FROM posts 
@@ -27,22 +34,24 @@ $stmt = $pdo->query("
 ");
 $posts = $stmt->fetchAll();
 
+// Fetch all tags
 $stmt1 = $pdo->query("
     SELECT tags.id, tags.name, post_tags.post_id
     FROM tags
     INNER JOIN post_tags ON tags.id = post_tags.tag_id");
 $tags1 = $stmt1->fetchAll();
 
+// Fetch all post files
 $postFilesStmt = $pdo->query("SELECT post_id, file_path FROM post_files");
 $postFiles = [];
 while ($row = $postFilesStmt->fetch(PDO::FETCH_ASSOC)) {
     $postFiles[$row['post_id']][] = $row['file_path'];
 }
 
-
+// Initialize Parsedown
 $Parsedown = new Parsedown(); // Initialize Parsedown
 
-// Helper functions
+// Function to convert datetime to time ago
 function timeAgo($datetime, $timezone = 'UTC') {
     $now = new DateTime("now", new DateTimeZone($timezone));
     $postTime = new DateTime($datetime, new DateTimeZone($timezone));
@@ -70,177 +79,30 @@ function timeAgo($datetime, $timezone = 'UTC') {
     return "Just now";
 }
 
+// Function to format date as YYYY/MM/DD
 function formatDate($datetime, $timezone = 'UTC') {
     $date = new DateTime($datetime, new DateTimeZone($timezone));
     return $date->format('Y/m/d');  // Format as YYYY/MM/DD
 }
 ?>
 
-<head>
-    <style>
-        /* Container for the posts grid */
-        .posts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        /* Individual post tile styling */
-        .post-tile {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between; /* Ensures button stays at bottom */
-            height: 500px; /* Adjust as needed to fit your content */
-            margin-bottom: 20px;
-            border-radius: 15px;
-            border: 2px solid #ddd;
-            padding: 20px;
-            transition: transform 0.3s ease;
-
-        }
-
-        .post-content {
-            overflow: header;
-            text-overflow: ellipsis;
-        }
-
-        .post-tile:hover {
-            transform: translateY(-5px);
-        }
-
-        /* Profile Section */
-        .profile-container {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .profile-photo {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #ddd;
-            margin-bottom: 10px;
-        }
-
-        .profile-links a {
-            display: inline-block;
-            margin: 0 10px;
-            color: #007bff;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .profile-links a:hover {
-            text-decoration: underline;
-        }
-
-        /* Image inside post tile */
-        .post-image, .post-video {
-            max-width: 275px;
-            max-height: 200px;
-            object-fit: contain;
-            margin-top: 10px;
-            border-radius: 10px;
-        }
-
-        /* Button styling */
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-
-        .btn:hover {
-            background-color: #0056b3;
-        }
-
-        .profile-photo-post {
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-left: 5px; /* Space between username and profile picture */
-            border: 2px solid black;
-        }
-
-        .post-user-link {
-            display: flex;
-            align-items: center;
-            text-decoration: none; /* Remove underline */
-            color: black; /* Make text black */
-            font-style: normal; /* Ensure normal text style */
-        }
-
-        .search-bar {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 20px;
-            font-size: 16px;
-        }
-        /* Media Grid Container */
-        .media-grid {
-            display: grid;
-            gap: 5px;
-            width: 100%;
-            height: 200px; /* Consistent height for all media blocks */
-        }
-
-        /* Different layouts based on file count */
-        .grid-2x2 {
-            grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: repeat(2, 1fr);
-        }
-
-        .grid-1x2 {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .grid-1x1 {
-            grid-template-columns: 1fr;
-        }
-
-        /* Ensuring media elements have consistent size */
-        .media-item {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Crops images/videos instead of stretching */
-            border-radius: 10px;
-            aspect-ratio: 16/9;
-        }
-        audio.media-item {
-            height: 40px; /* Control the height of the audio player */
-            object-fit: contain; /* Keep audio controls contained */
-            border-radius: 5px;
-        }
-
- 
-
-
-
-    </style>
-</head>
 <body>
 <div class="container">
 
     <input type="text" id="search" class="search-bar" placeholder="Search posts...">
 
-        
+    <!-- Display user posts in a tile view -->
     <?php if (count($posts) > 0): ?>
-
         <div class="posts-grid">
-            <?php foreach ($posts as $post): ?>
 
-                <?php
-                    $fileExtension = pathinfo($postFiles[$post['id']][0]);
-                    $isVideo = in_array(strtolower($fileExtension['extension']), $videoFileTypes);
-                    $isAudio = in_array(strtolower($fileExtension['extension']), $audioFileTypes);
-                    $isImage = !$isVideo && !$isAudio && !empty($post['image_path']);
-                ?>
+            <?php foreach ($posts as $post):
+                
+                // Check type of uploaded files
+                $fileExtension = pathinfo($postFiles[$post['id']][0]);
+                $isVideo = in_array(strtolower($fileExtension['extension']), $videoFileTypes);
+                $isAudio = in_array(strtolower($fileExtension['extension']), $audioFileTypes);
+                $isImage = !$isVideo && !$isAudio && !empty($post['image_path']);
+            ?>
                 <div class="post-tile" data-username="<?php echo strtolower($post['username']); ?>" data-tags="<?php foreach ($tags1 as $tag) { if ($tag['post_id'] == $post['id']) { echo strtolower($tag['name']) . ' '; } } ?>" data-location="<?php echo strtolower($post['location_name']); ?>" data-content="<?php echo strtolower(strip_tags($post['content'])); ?>">
 
                     <!-- Title -->
@@ -312,6 +174,8 @@ function formatDate($datetime, $timezone = 'UTC') {
     
 </div>
 <?php include 'footer.php'; ?>
+
+<!-- JavaScript to filter posts by search query -->
 <script>
 document.getElementById("search").addEventListener("input", function () {
     let query = this.value.toLowerCase().trim();

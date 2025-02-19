@@ -1,5 +1,4 @@
 /* General Styles */
-
 header {
     display: flex;
     justify-content: space-between;
@@ -21,12 +20,20 @@ body {
     flex-direction: column;
 }
 
+footer {
+    text-align: center;
+    margin-top: 20px;
+    padding: 10px;
+    background: #06402B;
+    color: white;
+    margin-top: auto;
+}
+
+/* Navigation Bar */
 .nav-container {
     flex: 1;
     justify-content: center;
 }
-
-/* Navigation Bar */
 
 nav {
     background-color: #06402B;
@@ -43,6 +50,10 @@ nav a {
     padding: 10px 15px;
 }
 
+nav a:hover {
+    text-decoration: underline;
+}
+
 .lia p {
     color: white;
     text-decoration: none;
@@ -50,11 +61,28 @@ nav a {
     font-weight: bold;
 }
 
-nav a:hover {
-    text-decoration: underline;
+.profile-photo-header {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 10px;
+    border: 1px solid white;
+}
+.user-info {
+    position: absolute;
+    right: 20px;
+    display: flex;
+    align-items: center;
+}
+.username {
+    color: lightblue;
+    font-weight: bold;
+    text-decoration: none;
 }
 
-/* Main Content */
+
+/* Main Content Container */
 .container {
     width: 80%;
     max-width: 900px;
@@ -63,6 +91,21 @@ nav a:hover {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Post Grid */
+.posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+/* Media Grid Container */
+.media-grid {
+    display: grid;
+    gap: 5px;
+    width: 100%;
+    height: 200px; /* Consistent height for all media blocks */
 }
 
 /* Post Styles */
@@ -82,33 +125,159 @@ nav a:hover {
     margin-top: 10px;
 }
 
-/* Buttons */
-/* button, .btn {
-    background-color: #007BFF;
-    color: white;
-    padding: 10px 15px;
-    border: none;
+.profile-photo-post {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-left: 5px; /* Space between username and profile picture */
+    border: 2px solid black;
+}
+
+.post-user-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none; /* Remove underline */
+    color: black; /* Make text black */
+    font-style: normal; /* Ensure normal text style */
+}
+.post-media {
+    display: flex;
+    flex-wrap: wrap; /* Wrap media if too many */
+    gap: 10px; /* Space between items */
+    justify-content: left;
+    align-items: center;
+}
+
+.post-media img {
+    max-width: 100%; /* Ensure it doesn’t overflow */
+    height: auto; /* Maintain aspect ratio */
+    max-height: 300px; /* Prevent huge images */
+    object-fit: contain; /* Scale properly */
+    border-radius: 10px; /* Optional rounded corners */
+}
+
+.post-media video {
+    max-width: 100%; 
+    max-height: 300px; /* Same height constraint */
+    border-radius: 10px;
+}
+
+.post-media audio {
+    width: 100%; /* Ensure it spans container */
+    max-width: 400px; /* Prevent overly wide players */
+}
+
+/* Post Styles (View All/User Profile) */
+.post-tile {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Ensures button stays at bottom */
+    height: 500px; /* Adjust as needed to fit your content */
+    margin-bottom: 20px;
+    border-radius: 15px;
+    border: 2px solid #ddd;
+    padding: 20px;
+    transition: transform 0.3s ease;
+
+}
+
+.post-tile:hover {
+    transform: translateY(-5px);
+}
+
+.post-content {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.post-image, .post-video {
+    max-width: 275px;
+    max-height: 200px;
+    object-fit: cover;
+    margin-top: 10px;
+    border-radius: 10px;
+}
+
+.profile-photo-post {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-left: 5px; /* Space between username and profile picture */
+    border: 2px solid black;
+}
+
+.post-user-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none; /* Remove underline */
+    color: black; /* Make text black */
+    font-style: normal; /* Ensure normal text style */
+}
+
+.search-bar {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+/* Ensuring media elements have consistent size */
+.media-item {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Crops images/videos instead of stretching */
+    border-radius: 10px;
+    aspect-ratio: 16/9;
+}
+audio.media-item {
+    height: 40px; /* Control the height of the audio player */
+    object-fit: contain; /* Keep audio controls contained */
     border-radius: 5px;
-    cursor: pointer;
-    font-family: inherit;
-    text-decoration: none; 
 }
 
-button:hover, .btn:hover {
-    background-color: #0056b3;
-    text-decoration: underline; 
+/* Different layouts based on file count */
+.grid-2x2 {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
 }
 
-button {
-    all: unset; 
+.grid-1x2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-1x1 {
+    grid-template-columns: 1fr;
+}
+
+
+/* Profile Section */
+.profile-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.profile-photo {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ddd;
+    margin-bottom: 10px;
+}
+
+.profile-links a {
     display: inline-block;
-    padding: 10px 15px;
-    background-color: #007BFF;
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
-    font-family: sans-serif;
-} */
+    margin: 0 10px;
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.profile-links a:hover {
+    text-decoration: underline;
+}
 
 /* Form Styling */
 form {
@@ -131,20 +300,26 @@ form label {
     font-weight: bold;
 }
 
-/* Footer */
-footer {
-    text-align: center;
-    margin-top: 20px;
-    padding: 10px;
-    background: #06402B;
-    color: white;
-    margin-top: auto;
-}
-
 .post_controls {
     margin-top: 30px;
 }
 
+/* Map Styling */
+#map {
+    height: 500px;
+    width: 100%;
+    border-radius: 10px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+.map-container {
+    max-width: 1200px;
+    height: 100%;
+    margin: auto;
+    text-align: center;
+    padding: 20px;
+}
 
 
 
