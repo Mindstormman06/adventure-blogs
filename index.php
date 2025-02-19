@@ -136,9 +136,9 @@ function formatDate($datetime, $timezone = 'UTC') {
             <p>
                 <i>Posted on 
                 <span class="post-time" data-time="<?php echo htmlspecialchars($post['created_at']); ?>">
-                    <?php echo $formattedPostDate; ?> (<?php echo $timeAgo; ?>) 
+                    <?php echo $formattedPostDate; ?> <!-- (<?php// echo $timeAgo; ?>) -->
                 </span>
-                <b>Only accurate in PST (For now)</b>
+                <!-- <b>Only accurate in PST (For now)</b> -->
                 </i>
             </p>
 

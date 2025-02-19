@@ -14,6 +14,15 @@ if (isset($_SESSION['user_id'])) {
 }
 ?>
 
+<?php
+    // Array of background images
+    $bg = array('bg-01.jpg', 'bg-02.jpg'); // array of filenames
+
+    // Randomly choose a background image
+    $i = rand(0, count($bg)-1); // generate random number size of the array
+    $selectedBg = "$bg[$i]"; // set variable equal to which random filename was chosen
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -34,6 +43,16 @@ if (isset($_SESSION['user_id'])) {
 
     <!-- Custom JS -->
     <script src="js/script.js"></script>
+
+    <!-- Background Image -->
+    <style type="text/css">
+        
+        body{
+        background: url(backgrounds/<?php echo $selectedBg; ?>);
+        background-attachment: fixed;
+        }
+        
+    </style>
 </head>
 
 <body>
