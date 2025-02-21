@@ -89,7 +89,7 @@ function formatDate($datetime, $timezone = 'UTC') {
 <body>
 <div class="container">
 
-    <input type="text" id="search" class="search-bar" placeholder="Search posts...">
+    <input type="text" id="search" class="search-bar" placeholder="Search posts... (e.g., @username, #tag, location, title)">
 
     <!-- Display user posts in a tile view -->
     <?php if (count($posts) > 0): ?>
