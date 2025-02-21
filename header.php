@@ -7,7 +7,7 @@ include 'config.php';
 
 $isAdmin = false;
 if (isset($_SESSION['user_id'])) {
-    $stmt = $pdo->prepare("SELECT role, profile_photo FROM users WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT role, profile_photo, username FROM users WHERE id = ?");
     $stmt->execute([$_SESSION['user_id']]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     $isAdmin = ($user['role'] === 'admin');
@@ -15,12 +15,21 @@ if (isset($_SESSION['user_id'])) {
 ?>
 
 <?php
-    // Array of background images
-    $bg = array('bg-01.jpg', 'bg-02.jpg'); // array of filenames
+
+    $backgrounds = scandir('backgrounds/'); // get all files into an array
+    $backgrounds = array_diff($backgrounds, array('.', '..')); // remove . and .. from array
+    // echo '<pre>'; print_r($backgrounds); echo '</pre>';
+
+
+
 
     // Randomly choose a background image
-    $i = rand(0, count($bg)-1); // generate random number size of the array
-    $selectedBg = "$bg[$i]"; // set variable equal to which random filename was chosen
+    $i = rand(2, count($backgrounds)-1); // generate random number size of the array
+    $selectedBg = "$backgrounds[$i]"; // set variable equal to which random filename was chosen
+    
+    // Testing Fields
+    // $selectedBg = 'bg-01.jpg';
+    // echo $selectedBg;
 ?>
 
 <!DOCTYPE html>
@@ -50,6 +59,8 @@ if (isset($_SESSION['user_id'])) {
         body{
         background: url(backgrounds/<?php echo $selectedBg; ?>);
         background-attachment: fixed;
+        background-size: cover;
+        background-repeat: no-repeat;
         }
         
     </style>
@@ -57,7 +68,7 @@ if (isset($_SESSION['user_id'])) {
 
 <body>
     <header>
-
+        
         <!-- Navigation bar -->
         <div class="nav-container">
             <nav>
@@ -77,7 +88,7 @@ if (isset($_SESSION['user_id'])) {
         <?php if (isset($_SESSION['user_id'])): ?>
             <div class="user-info">
                 <img src="<?php echo !empty($user['profile_photo']) ? htmlspecialchars($user['profile_photo']) : 'profile_photos/default_profile.png'; ?>" alt="Profile Photo" class="profile-photo-header">
-                <a href="<?php echo 'user_profile.php?username=' . $_SESSION['username']?>" class="username"><?php echo htmlspecialchars($_SESSION['username']); ?> <?php if ($user['role'] == 'admin') { echo '(' . htmlspecialchars($user['role']) . ')';} ?></a>
+                <a href="<?php echo 'user_profile.php?username=' . $user['username']?>" class="username"><?php echo htmlspecialchars($user['username']); ?> <?php if ($user['role'] == 'admin') { echo '(' . htmlspecialchars($user['role']) . ')';} ?></a>
             </div>
         <?php endif; ?>
 

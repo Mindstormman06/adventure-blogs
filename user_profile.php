@@ -70,7 +70,7 @@ $Parsedown = new Parsedown(); // Initialize Parsedown
             <?php endif; ?>
         </div>
         <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $user['id']): ?>
-            <a class="btn" href="edit_user.php">Edit Profile</a>
+            <a class="btn btn-primary" href="edit_user.php">Edit Profile</a>
         <?php endif; ?>
     </div>
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->

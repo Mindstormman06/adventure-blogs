@@ -173,7 +173,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <!-- Tags -->
         <div class="form-group">
             <label>Tags (comma-separated):</label>
-            <input type="text" name="tags" value="<?php echo htmlspecialchars(getTags($tags, $post)); ?>">
+            <input type="text" name="tags" value="<?php echo htmlspecialchars(getTags($tags, $post)); ?>" placeholder="e.g. travel, adventure, hiking">
         </div>
 
         <!-- Location Name -->

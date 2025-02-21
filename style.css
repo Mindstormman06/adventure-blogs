@@ -15,9 +15,29 @@ body {
     padding: 0;
     background-image: url("background.jpg");
     background-attachment: fixed;
+    background-repeat: no-repeat;
+    /* background-size: 100%; */
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+}
+
+@media (max-width: 1920px) {
+    body {
+        background-size: 1920px, 1080px;
+    }
+}
+
+@media (max-width: 2560px) {
+    body {
+        background-size: 2560px, 1440px;
+    }
+}
+
+@media (max-width: 3840px) {
+    body {
+        background-size: 3840px, 2160px;
+    }
 }
 
 footer {
