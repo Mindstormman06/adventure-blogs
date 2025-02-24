@@ -68,19 +68,26 @@ $commentStmt->execute([$postId]);
 $comments = $commentStmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Function to organize threaded comments
-function buildCommentTree($comments, $parentId = null, $depth = 0, $maxDepth = 5) {
-    if ($depth >= $maxDepth) {
-        return [];
-    }
+function buildCommentTree($comments, $parentId = null) {
     $tree = [];
     foreach ($comments as $comment) {
         if ($comment['parent_id'] == $parentId) {
-            $comment['replies'] = buildCommentTree($comments, $comment['id']);
+            // Only build replies for base-level comments
+            if ($parentId === null) {
+                $comment['replies'] = array_filter($comments, function ($reply) use ($comment) {
+                    return $reply['parent_id'] == $comment['id'];
+                });
+            } else {
+                $comment['replies'] = [];
+            }
             $tree[] = $comment;
         }
     }
     return $tree;
 }
+
+$commentTree = buildCommentTree($comments);
+
 
 $commentTree = buildCommentTree($comments);
 
@@ -178,66 +185,68 @@ $postContent = $Parsedown->text($post['content']); // Convert Markdown to HTML
     <?php endforeach; ?> -->
 
     <div id="comments">
-        <?php function renderComments($comments) {
-            global $Parsedown;
-            foreach ($comments as $comment): ?>
-                <div class="comment" id="comment-<?php echo $comment['id']; ?>" style="margin-left: <?php echo $comment['parent_id'] ? '40px' : '0'; ?>;">
-                    <p>
-                        <a href="<?php echo 'user_profile.php?username=' . $comment['username']?>" class="post-user-link link-primary">
-                            <strong><?php echo htmlspecialchars($comment['username']); ?></strong>
-                            <img src="<?php echo !empty($comment['profile_photo']) ? htmlspecialchars($comment['profile_photo']) : 'profile_photos/default_profile.png'; ?>" 
-                            alt="Profile Photo" class="profile-photo-post">
-                        </a>
-                        <small><?php echo $comment['created_at']; ?></small>
-                    </p>
-                    <p><?php echo $Parsedown->text($comment['comment_text']); ?></p>
+    <?php function renderComments($comments) {
+        global $Parsedown;
+        foreach ($comments as $comment): ?>
+            <div class="comment" id="comment-<?php echo $comment['id']; ?>">
+                <p>
+                    <a href="<?php echo 'user_profile.php?username=' . $comment['username']?>" class="post-user-link link-primary">
+                        <strong><?php echo htmlspecialchars($comment['username']); ?></strong>
+                        <img src="<?php echo !empty($comment['profile_photo']) ? htmlspecialchars($comment['profile_photo']) : 'profile_photos/default_profile.png'; ?>" 
+                        alt="Profile Photo" class="profile-photo-post">
+                    </a>
+                    <small><?php echo $comment['created_at']; ?></small>
+                </p>
+                <p><?php echo $Parsedown->text($comment['comment_text']); ?></p>
 
+                <?php if ($comment['parent_id'] == null): ?>
                     <button onclick="replyToComment(<?php echo $comment['id']; ?>)" 
                         class="text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
                         Reply
                     </button>
+                <?php endif; ?>
 
-                    <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $comment['user_id']): ?>
-                        <button onclick="editComment(<?php echo $comment['id']; ?>)" 
-                            class="text-black bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-4 focus:ring-yellow-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:focus:ring-yellow-900">
-                            Edit
-                        </button>
-                        <button onclick="deleteComment(<?php echo $comment['id']; ?>)"
-                            class="text-white bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
-                            Delete
-                        </button>
-                    <?php endif; ?>
+                <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $comment['user_id']): ?>
+                    <button onclick="editComment(<?php echo $comment['id']; ?>)" 
+                        class="text-black bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-4 focus:ring-yellow-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:focus:ring-yellow-900">
+                        Edit
+                    </button>
+                    <button onclick="deleteComment(<?php echo $comment['id']; ?>)"
+                        class="text-white bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+                        Delete
+                    </button>
+                <?php endif; ?>
 
-                    
-
-                    <div id="edit-form-<?php echo $comment['id']; ?>" style="display: none;">
-                        <form method="post" action="edit_comment.php">
-                            <input type="hidden" name="comment_id" value="<?php echo $comment['id']; ?>">
-                            <textarea name="comment_text"><?php echo htmlspecialchars($comment['comment_text']); ?></textarea>
-                            <button type="submit">Save</button>
-                        </form>
-                    </div>
-
-                    <div id="reply-form-<?php echo $comment['id']; ?>" style="display: none;">
-                        <form method="post">
-                            <input type="hidden" name="parent_id" value="<?php echo $comment['id']; ?>">
-                            <textarea name="comment_text" required></textarea>
-                            <button type="submit">Reply</button>
-                        </form>
-                    </div>
-
-                    <?php if (!empty($comment['replies'])): ?>
-                        <div class="replies">
-                            <?php renderComments($comment['replies']); ?>
-                        </div>
-                    <?php endif; ?>
+                <div id="edit-form-<?php echo $comment['id']; ?>" style="display: none;">
+                    <form method="post" action="edit_comment.php">
+                        <input type="hidden" name="comment_id" value="<?php echo $comment['id']; ?>">
+                        <textarea name="comment_text"><?php echo htmlspecialchars($comment['comment_text']); ?></textarea>
+                        <button type="submit">Save</button>
+                    </form>
                 </div>
-            <?php endforeach;
+
+                <div id="reply-form-<?php echo $comment['id']; ?>" style="display: none;">
+                    <form method="post">
+                        <input type="hidden" name="parent_id" value="<?php echo $comment['id']; ?>">
+                        <textarea name="comment_text" required></textarea>
+                        <button type="submit" 
+                        class="text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+                        Post Reply</button>
+                    </form>
+                </div>
+
+                <?php if (!empty($comment['replies'])): ?>
+                    <div class="replies">
+                        <?php renderComments($comment['replies']); ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        <?php endforeach;
         }
         renderComments($commentTree);
         ?>
-
     </div>
+
 
     <!-- Add a Comment -->
     <?php if (isset($_SESSION['user_id'])): ?>

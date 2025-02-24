@@ -28,8 +28,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
     // Validate title and content
-    if (empty($title) || empty($content)) {
-        echo "<p>Error: Both title and content must be filled in.</p>";
+    if (empty($title)) {
+        echo "<p>Error: Title must be filled in.</p>";
     } elseif (strlen($content) > 1000) {
         echo "<p>Error: Content exceeds the 1000-character limit.</p>";
     } else {
@@ -160,7 +160,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <!-- Content -->
         <div class="form-group">
             <label>Content:</label>
-            <textarea name="content" id="content" required maxlength="1000"></textarea>
+            <textarea name="content" id="content" maxlength="1000"></textarea>
             <small id="content-char-count">0/1000 characters used</small>
             <br>
             <small><i>Markdown is supported! Click <a href="https://github.com/adam-p/markdown-here/wiki/markdown-cheatsheet">here</a> for a guide on using Markdown</i></small>
@@ -277,8 +277,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         var content = document.getElementById("content").value;
         var fileErrorsDiv = document.getElementById("fileErrors");
 
-        if (title.trim() === "" || content.trim() === "") {
-            alert("Both the title and content must be filled in.");
+        if (title.trim() === "") {
+            alert("Title must be filled in.");
             return false;
         }
 

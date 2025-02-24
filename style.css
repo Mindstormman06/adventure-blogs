@@ -380,20 +380,36 @@ form label {
 }
 
 /* Comment Styling */
+#comments {
+    overflow-x: auto;
+    white-space: normal;
+    max-width: 100%;
+}
+
 .comment {
-    border: 1px solid #ddd;
-    padding: 10px;
-    margin-bottom: 10px;
-    background: #f9f9f9;
-    border-radius: 5px;
+    margin-left: 0px; /* Remove left margin */
+    border-left: 1px solid #ccc; /* Add a left border */
+    padding-left: 10px; /* Add padding to create space */
+    min-width: 60%; /* Ensure comments don't get too narrow */
 }
 
 .replies {
-    margin-left: 20px;
-    border-left: 2px solid #ddd;
-    padding-left: 10px;
-    margin-top: 10px;
+    margin-left: 20px; /* Indent replies */
+    max-width: 100%; /* Keep it responsive */
+    padding-left: 20px; /* Add some padding */
+    display: flex;
+    flex-direction: column; /* Stack replies vertically */
+    gap: 10px; /* Add some gap between replies */
 }
+
+.replies .comment {
+    width: 100%; /* Adjust width for nested comments */
+}
+
+
+
+
+
 
 
 
