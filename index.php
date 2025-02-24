@@ -231,32 +231,43 @@ function formatDate($datetime, $timezone = 'UTC') {
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     document.querySelectorAll(".post-time").forEach(function(element) {
-        let utcTime = element.getAttribute("data-time");
+        let pstTime = element.getAttribute("data-time");
 
-        if (!utcTime) return; // Skip if no timestamp found
+        if (!pstTime) return; // Skip if no timestamp found
 
-        let dateObj = new Date(utcTime);  // Create a JS Date object from the UTC timestamp
-        if (isNaN(dateObj.getTime())) {  // Check for invalid date
-            console.error("Invalid date format for:", utcTime);
+        let dateObjPST = new Date(pstTime); // Stored PST timestamp
+        if (isNaN(dateObjPST.getTime())) {  // Check for invalid date
+            console.error("Invalid date format for:", pstTime);
             element.innerText = "Error loading time";
             return;
         }
 
-        // Format the date as YYYY/MM/DD
-        let formattedDate = dateObj.getFullYear() + '/' + 
-                            ('0' + (dateObj.getMonth() + 1)).slice(-2) + '/' + 
-                            ('0' + dateObj.getDate()).slice(-2);
+        // Step 1: Convert PST → UTC (Add 8 hours)
+        let dateObjUTC = new Date(dateObjPST.getTime() + (8 * 60 * 60 * 1000));
+
+        // Step 2: Convert UTC → Local Time (Based on viewer's timezone)
+        let localTime = new Date(dateObjUTC.getTime() - dateObjUTC.getTimezoneOffset() * 60000);
+
+        console.log("Stored PST Time:", pstTime);
+        console.log("Converted UTC Time:", dateObjUTC.toISOString());
+        console.log("Viewer's Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+        console.log("Local Time:", localTime.toLocaleString());
+
+        // Format the local date as YYYY/MM/DD
+        let formattedDate = localTime.getFullYear() + '/' + 
+                            ('0' + (localTime.getMonth() + 1)).slice(-2) + '/' + 
+                            ('0' + localTime.getDate()).slice(-2);
 
         // Get the time difference (e.g., "2 hours ago", "3 days ago", etc.)
-        let timeAgo = getTimeAgo(dateObj);
+        let timeAgo = getTimeAgo(localTime);
 
         // Display the formatted date and time difference
         element.innerText = `${formattedDate} (${timeAgo})`;
     });
 
-    function getTimeAgo(dateObj) {
-        let now = new Date();
-        let diff = now - dateObj;
+    function getTimeAgo(localTime) {
+        let now = new Date(); // Local time
+        let diff = now - localTime;
 
         // Calculate time difference in milliseconds
         let minutes = Math.floor(diff / (1000 * 60));
@@ -276,6 +287,8 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 </script>
+
+
 
 </body>
 </html>
