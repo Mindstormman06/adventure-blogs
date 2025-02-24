@@ -53,6 +53,10 @@ if (isset($_SESSION['user_id'])) {
     <!-- Custom JS -->
     <script src="js/script.js"></script>
 
+    <!-- Tagify CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
+    <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+
     <!-- Background Image -->
     <style type="text/css">
         

@@ -136,22 +136,24 @@ function formatDate($datetime, $timezone = 'UTC') {
             <p>
                 <i>Posted on 
                 <span class="post-time" data-time="<?php echo htmlspecialchars($post['created_at']); ?>">
-                    <?php echo $formattedPostDate; ?> <!-- (<?php// echo $timeAgo; ?>) -->
+                    <?php echo $formattedPostDate; ?>
                 </span>
-                <!-- <b>Only accurate in PST (For now)</b> -->
                 </i>
             </p>
 
             <!-- Post Tags -->
-            <p class="post-tags"><strong>Tags:</strong> 
-                <?php 
-                    foreach ($tags1 as $tags) {
-                        if ($tags['post_id'] == $post['id']) {   
-                            echo '#' . htmlspecialchars($tags['name']) . " ";
+            
+            <?php if (!empty($postTag)):?>
+                <p class="post-tags"><strong>Tags:</strong> 
+                    <?php 
+                        foreach ($tags1 as $tags) {
+                            if ($tags['post_id'] == $post['id']) {   
+                                echo '#' . htmlspecialchars($tags['name']) . " ";
+                            }
                         }
-                    }
-                ?>
-            </p>
+                    ?>
+                </p>
+            <?php endif; ?>
 
             <!-- Display location if available -->
             <?php if (!empty($post['location_name']) && !empty($post['latitude']) && !empty($post['longitude'])): ?>
@@ -184,7 +186,7 @@ function formatDate($datetime, $timezone = 'UTC') {
                         <?php if ($isAudio): ?>
                             <div>
                                 <?php 
-                                    $i += 1;
+                                    $i += 1; // Increment $i for each file
                                     $originalName = $postFilesOriginal[$post['id']][$i];
                                     $displayName = mb_strimwidth($originalName, 0, 36, "..."); 
                                 ?>

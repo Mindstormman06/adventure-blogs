@@ -70,6 +70,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $location_name = null;
     }
 
+
+    // Remove Location
+    if (isset($_POST["remove_location"])) {
+        $latitude = null;
+        $longitude = null;
+        $location_name = null;
+    }
+
     // Allowed File Data
     $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/webm', 'video/quicktime', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/x-m4a', 'audio/x-flac', 'audio/flac'];
     $maxFileSize = 100 * 1024 * 1024; // MB max per file
@@ -102,6 +110,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt = $pdo->prepare("UPDATE posts SET title = ?, content = ?, location_name = ?, latitude = ?, longitude = ? WHERE id = ?");
     $stmt->execute([$title, $content, $location_name, $latitude, $longitude, $post_id]);
 
+    // Track deleted tags
+    $deletedTags = [];
+    if (!empty($removedTagsInput)) {
+        $deletedTags = array_map('trim', explode(',', $removedTagsInput));
+        foreach ($deletedTags as $tag) {
+            $stmt = $pdo->prepare("SELECT id FROM tags WHERE name = ?");
+            $stmt->execute([$tag]);
+            $tag_id = $stmt->fetchColumn();
+            if ($tag_id) {
+                $pdo->prepare("DELETE FROM post_tags WHERE post_id = ? AND tag_id = ?")->execute([$post_id, $tag_id]);
+            }
+        }
+    }
+
     // Update tags
     $pdo->prepare("DELETE FROM post_tags WHERE post_id = ?")->execute([$post_id]);
     if (!empty($tagsInput)) {
@@ -121,11 +143,100 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
+    // Delete unused tags from tags table
+    foreach ($deletedTags as $tag) {
+        $stmt = $pdo->prepare("SELECT id FROM tags WHERE name = ?");
+        $stmt->execute([$tag]);
+        $tag_id = $stmt->fetchColumn();
+        if ($tag_id) {
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM post_tags WHERE tag_id = ?");
+            $stmt->execute([$tag_id]);
+            $tagCount = $stmt->fetchColumn();
+            if ($tagCount == 0) {
+                $pdo->prepare("DELETE FROM tags WHERE id = ?")->execute([$tag_id]);
+            }
+        }
+    }
+
     header("Location: index.php");
     exit;
 }
 ?>
+<head>
+    <style>
+        /* Tagify input field styling */
+        .tagify__input {
+            min-width: 150px; /* Adjust width as needed */
+            padding-left: 10px;
+            padding-right: 10px;
+            display: inline-block; /* Ensure it's displayed inline-block */
+            vertical-align: middle; /* Align it in the middle */
+        }
 
+        .tagify {
+            display: flex;
+            align-items: center;
+            min-height: 38px; /* Ensuring the container has a consistent height */
+            border: 1px solid #ccc; /* Adding border for a complete input field appearance */
+            padding: 5px; /* Adding padding for a consistent look */
+        }
+
+        /* Placeholder text styling */
+        .tagify__input::placeholder {
+            opacity: 0.5; /* Adjust opacity for better visibility */
+            padding-left: 10px; /* Ensure placeholder is well-aligned */
+        }
+        /* Container for the media gallery */
+        .media-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* Individual media container */
+        .media-container {
+            position: relative;
+            max-width: 150px;
+            max-height: 150px;
+            overflow: hidden;
+        }
+
+        .media-item {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Remove button styling */
+        .remove-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(220, 53, 69, 0.8); /* Bootstrap's danger color with transparency */
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 16px;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Show remove button on hover */
+        .media-container:hover .remove-button {
+            display: flex;
+        }
+
+        /* Hide the checkbox */
+        .remove-checkbox {
+            display: none;
+        }
+
+</style>
+</head>
 <div class="container">
     <h2>Edit Post</h2>
     <form method="post" enctype="multipart/form-data">
@@ -139,7 +250,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <!-- Content -->
         <div class="form-group">
             <label>Content:</label>
-            <textarea name="content" id="content" rows="5" required><?php echo htmlspecialchars($post['content']); ?></textarea>
+            <textarea name="content" id="content" rows="5"><?php echo htmlspecialchars($post['content']); ?></textarea>
             <small id="content-char-count">0/1000 characters used</small>
         </div>
 
@@ -151,22 +262,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div id="filePreview" style="margin-top: 10px;"></div>
             <?php if (!empty($existingImages)): ?>
                 <p><strong>Current Media:</strong></p>
-                <div class="d-flex flex-wrap gap-3">
+                <div class="media-gallery">
                     <?php foreach ($existingImages as $image): ?>
-                        <div class="text-center" style="max-width: 150px;">
+                        <div class="media-container">
                             <?php if (preg_match('/\.(jpg|jpeg|png|gif)$/i', $image)): ?>
-                                <img src="<?php echo $image; ?>" class="img-thumbnail mb-2" style="max-width: 100%;">
+                                <img src="<?php echo htmlspecialchars($image); ?>" class="media-item">
                             <?php elseif (preg_match('/\.(mp4|webm|mov)$/i', $image)): ?>
-                                <video src="<?php echo $image; ?>" controls class="img-thumbnail mb-2" style="max-width: 100%;">
-                                </video>
-                            <?php elseif (preg_match('/\.(mp3|wav|ogg|mp4|m4a|flac)$/i', $image)): ?>
-                                <audio src="<?php echo $image; ?>" controls class="mb-2" style="width: 100%;">
-                                </audio>
+                                <video src="<?php echo htmlspecialchars($image); ?>" controls class="media-item"></video>
+                            <?php elseif (preg_match('/\.(mp3|wav|ogg|m4a|flac)$/i', $image)): ?>
+                                <audio src="<?php echo htmlspecialchars($image); ?>" controls class="media-item"></audio>
                             <?php endif; ?>
-                            <div>
-                                <input type="checkbox" name="remove_images[]" value="<?php echo $image; ?>" id="remove_<?php echo $image; ?>">
-                                <label for="remove_<?php echo $image; ?>">Remove</label>
-                            </div>
+                            <button type="button" class="remove-button" onclick="removeMedia(this)">×</button>
+                            <input type="checkbox" name="remove_images[]" value="<?php echo htmlspecialchars($image); ?>" class="remove-checkbox">
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -176,7 +283,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <!-- Tags -->
         <div class="form-group">
-            <label>Tags (comma-separated):</label>
+            <label>Tags:</label>
             <input type="text" name="tags" value="<?php echo htmlspecialchars(getTags($tags, $post)); ?>" placeholder="e.g. travel, adventure, hiking">
         </div>
 
@@ -192,6 +299,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div id="map" style="height: 400px;"></div>
             <input type="hidden" name="latitude" id="latitude" value="<?php echo $post['latitude']; ?>">
             <input type="hidden" name="longitude" id="longitude" value="<?php echo $post['longitude']; ?>">
+        </div>
+
+        <!-- Remove Location Checkbox -->
+        <div class="form-group">
+            <input type="checkbox" name="remove_location" id="remove_location">
+            <label for="remove_location">Remove Location</label>
         </div>
 
         <!-- Submit Button -->
@@ -262,7 +375,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     });
 
+    // Form submit validation
+    document.querySelector("form").addEventListener("submit", function(event) {
+        var fileInput = document.getElementById("file_input");
+        var existingMedia = document.querySelectorAll(".media-container .remove-checkbox:not(:checked)").length;
+        var files = fileInput.files;
+        var maxFiles = 10;
+        
+        // Check if the total number of files exceeds the maximum allowed
+        if (files.length + existingMedia > maxFiles) {
+            event.preventDefault(); // Prevent form submission
+            var fileErrorsDiv = document.getElementById("fileErrors");
+            fileErrorsDiv.innerHTML = `<p>Error: You can upload a maximum of ${maxFiles} files in total.</p>`;
+        }
+    });
 </script>
+
 
 <!-- Post Validation Script + Map Script -->
 <script>
@@ -277,8 +405,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         var content = document.getElementById("content").value;
         var fileErrorsDiv = document.getElementById("fileErrors");
 
-        if (title.trim() === "" || content.trim() === "") {
-            alert("Both the title and content must be filled in.");
+        if (title.trim() === "") {
+            alert("Title must be filled in.");
             return false;
         }
 
@@ -320,6 +448,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     map.on('click', onMapClick);
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var input = document.querySelector('input[name=tags]');
+        var removedTagsInput = document.createElement('input');
+        removedTagsInput.type = 'hidden';
+        removedTagsInput.name = 'removed_tags';
+        document.querySelector('form').appendChild(removedTagsInput);
+
+        var tagify = new Tagify(input);
+
+        tagify.on('remove', function(e) {
+            var removedTag = e.detail.data.value;
+            var removedTags = removedTagsInput.value ? removedTagsInput.value.split(',') : [];
+            removedTags.push(removedTag);
+            removedTagsInput.value = removedTags.join(',');
+        });
+
+        // Convert Tagify output to a simple comma-separated string before submitting the form
+        document.querySelector('form').addEventListener('submit', function() {
+            var tagsArray = tagify.value.map(tag => tag.value);
+            input.value = tagsArray.join(',');
+        });
+    });
+</script>
+<script>
+function removeMedia(button) {
+    // Get the parent container
+    var container = button.parentElement;
+    // Find the hidden checkbox
+    var checkbox = container.querySelector('.remove-checkbox');
+    // Check the checkbox to mark for removal
+    checkbox.checked = true;
+    // Hide the container visually
+    container.style.display = 'none';
+}
 </script>
 
 <?php include 'footer.php'; ?>

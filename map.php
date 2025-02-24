@@ -34,16 +34,27 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
             height: 60vh;
             width: 100%; 
         }
-
     </style>
 </head>
 <body>
 
     <!-- Display the map -->
     <div class="container map-container">
+        <label>
+            <input type="checkbox" id="toggleMarkers" checked>
+            Show AB Markers
+        </label>
+        <label>
+            <input type="checkbox" id="toggleFlareMarkers">
+            Show Flare Markers
+        </label>
         <div id="map"></div>
         <a href="index.php" class="btn btn-primary">⬅ Back to Posts</a>
     </div>
+
+    <script>
+        document.getElementById("toggleFlareMarkers").disabled = true;
+    </script>
 
     <!-- Load Leaflet from CDN -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -52,6 +63,7 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
     <script>
         var map = L.map('map').setView([49.214009, -123.070856], 5);
         var posts = <?php echo json_encode($posts); ?>;
+        var markers = [];
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
@@ -59,12 +71,29 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
 
         posts.forEach(post => {
             if (post.latitude && post.longitude && !isNaN(post.latitude) && !isNaN(post.longitude)) {
-                L.marker([parseFloat(post.latitude), parseFloat(post.longitude)]).addTo(map)
-                    .bindPopup(post.location_name);
+                var marker = L.marker([parseFloat(post.latitude), parseFloat(post.longitude)]).addTo(map)
+                    .bindPopup(`<div>
+                                    <h4>${post.title}</h4>
+                                    <p>By: ${post.username}</p>
+                                    <p>${post.content.slice(0, 100)}...</p>
+                                    <a href="post.php?id=${post.id}">View Post</a>
+                                    <small>Origin: Adventure Blogs</small>
+                                </div>`);
+                markers.push(marker);
             }
         });
 
+        // Handle checkbox change
+        document.getElementById('toggleMarkers').addEventListener('change', function() {
+            if (this.checked) {
+                markers.forEach(marker => map.addLayer(marker));
+            } else {
+                markers.forEach(marker => map.removeLayer(marker));
+            }
+        });
     </script>
 
 </body>
 </html>
+
+<?php include 'footer.php'; ?>

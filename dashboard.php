@@ -146,7 +146,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
+<head>
+    <style>
+        /* Tagify input field styling */
+        .tagify__input {
+            min-width: 150px; /* Adjust width as needed */
+            padding-left: 10px;
+            padding-right: 10px;
+            display: inline-block; /* Ensure it's displayed inline-block */
+            vertical-align: middle; /* Align it in the middle */
+        }
 
+        .tagify {
+            display: flex;
+            align-items: center;
+            min-height: 38px; /* Ensuring the container has a consistent height */
+            border: 1px solid #ccc; /* Adding border for a complete input field appearance */
+            padding: 5px; /* Adding padding for a consistent look */
+        }
+
+        /* Placeholder text styling */
+        .tagify__input::placeholder {
+            opacity: 0.5; /* Adjust opacity for better visibility */
+            padding-left: 10px; /* Ensure placeholder is well-aligned */
+        }
+</style>
+</head>
 <div class="container">
     <h2>Create a New Post</h2>
     <form method="post" enctype="multipart/form-data" onsubmit="return validatePost()">
@@ -176,7 +201,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <!-- Tags -->
         <div class="form-group">
-            <label>Tags (comma-separated):</label>
+            <label>Tags (Hit Enter after each tag):</label>
             <input type="text" name="tags" placeholder="e.g. travel, adventure, hiking">
         </div>    
 
@@ -315,6 +340,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     map.on('click', onMapClick);
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var input = document.querySelector('input[name=tags]');
+        var removedTagsInput = document.createElement('input');
+
+        var tagify = new Tagify(input);
+
+        // Convert Tagify output to a simple comma-separated string before submitting the form
+        document.querySelector('form').addEventListener('submit', function() {
+            var tagsArray = tagify.value.map(tag => tag.value);
+            input.value = tagsArray.join(',');
+        });
+    });
 </script>
 
 <?php include 'footer.php'; ?>
