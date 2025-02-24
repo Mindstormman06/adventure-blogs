@@ -1,2 +1,4 @@
 AddType audio/flac .flac
 AddType audio/x-flac .flac
+RewriteEngine On
+RewriteRule ^.well-known/acme-challenge/ - [L]

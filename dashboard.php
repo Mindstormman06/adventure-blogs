@@ -17,10 +17,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $title = trim($_POST["title"]);
     $content = trim($_POST["content"]);
     $user_id = $_SESSION["user_id"];
-    $location_name = !empty($_POST['location_name']) ? $_POST['location_name'] : "Tagged Location";
     $latitude = !empty($_POST["latitude"]) ? $_POST["latitude"] : null;
     $longitude = !empty($_POST["longitude"]) ? $_POST["longitude"] : null;
     $tagsInput = trim($_POST["tags"]);
+    if (isset($latitude) && isset($longitude)) {
+        $location_name = !empty($_POST['location_name']) ? $_POST['location_name'] : "Tagged Location";
+    } else {
+        $location_name = null;
+    }
 
 
     // Validate title and content

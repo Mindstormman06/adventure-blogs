@@ -74,6 +74,7 @@ if (isset($_SESSION['user_id'])) {
             <nav>
                 <a href="index.php">Home</a>
                 <a href="view_all.php">View All</a>
+                <a href="map.php">Map</a>
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <a href="dashboard.php">Create Post</a>
                     <a href="logout.php">Logout</a>
@@ -81,16 +82,16 @@ if (isset($_SESSION['user_id'])) {
                     <a href="login.php">Login</a>
                     <a href="register.php">Register</a>
                 <?php endif; ?>
+                <!-- User Info -->
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <div class="user-info">
+                        <img src="<?php echo !empty($user['profile_photo']) ? htmlspecialchars($user['profile_photo']) : 'profile_photos/default_profile.png'; ?>" alt="Profile Photo" class="profile-photo-header">
+                        <a href="<?php echo 'user_profile.php?username=' . $user['username']?>" class="username"><?php echo htmlspecialchars($user['username']); ?> <?php if ($user['role'] == 'admin') { echo '(' . htmlspecialchars($user['role']) . ')';} ?></a>
+                    </div>
+                <?php endif; ?>
             </nav>
+            
         </div>
-        
-        <!-- User Info -->
-        <?php if (isset($_SESSION['user_id'])): ?>
-            <div class="user-info">
-                <img src="<?php echo !empty($user['profile_photo']) ? htmlspecialchars($user['profile_photo']) : 'profile_photos/default_profile.png'; ?>" alt="Profile Photo" class="profile-photo-header">
-                <a href="<?php echo 'user_profile.php?username=' . $user['username']?>" class="username"><?php echo htmlspecialchars($user['username']); ?> <?php if ($user['role'] == 'admin') { echo '(' . htmlspecialchars($user['role']) . ')';} ?></a>
-            </div>
-        <?php endif; ?>
 
     </header>
 </body>

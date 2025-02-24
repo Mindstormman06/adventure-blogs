@@ -86,7 +86,6 @@ nav a:hover {
     height: 35px;
     border-radius: 50%;
     object-fit: cover;
-    margin-right: 10px;
     border: 2px solid black;
 }
 .user-info {
@@ -101,42 +100,54 @@ nav a:hover {
     text-decoration: none;
 }
 
-@media (max-width: 768px) { /* Adjust for mobile screens */
-    .nav-container {
+@media (max-width: 768px) {
+    header {
         display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    nav {
-        flex-direction: row;
-        text-align: center;
+        flex-wrap: wrap; /* Allows wrapping */
         gap: 10px;
     }
 
-    .user-info {
-        position: relative; /* Prevent absolute positioning issues */
+    .nav-container {
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        flex: 1; /* Takes up remaining space */
+        justify-content: left;
+
+    }
+
+    nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    nav a {
+        display: inline-block; /* Prevents full-width stacking */
+        padding: 10px;
+        white-space: nowrap; /* Prevents breaking */
+        flex-shrink: 0; /* Prevents shrinking */
     }
 
     .profile-photo-header {
         width: 30px;
         height: 30px;
-        margin-left: 22px;
+    }
+    .user-info {
+        position: static;
+        right: auto;
     }
 
     .username {
         font-size: 14px;
         max-width: 100px;
-        margin-left: 10px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 }
+
+
 
 /* Main Content Container */
 .container {

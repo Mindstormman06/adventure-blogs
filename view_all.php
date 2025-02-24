@@ -103,7 +103,7 @@ function formatDate($datetime, $timezone = 'UTC') {
                 $isAudio = in_array(strtolower($fileExtension['extension']), $audioFileTypes);
                 $isImage = !$isVideo && !$isAudio && !empty($post['image_path']);
             ?>
-                <div class="post-tile" data-username="<?php echo strtolower($post['username']); ?>" data-tags="<?php foreach ($tags1 as $tag) { if ($tag['post_id'] == $post['id']) { echo strtolower($tag['name']) . ' '; } } ?>" data-location="<?php echo strtolower($post['location_name']); ?>" data-content="<?php echo strtolower(strip_tags($post['content'])); ?>">
+                <div class="post-tile" data-title="<?php echo $post['title'];?> data-username="<?php echo strtolower($post['username']); ?>" data-tags="<?php foreach ($tags1 as $tag) { if ($tag['post_id'] == $post['id']) { echo strtolower($tag['name']) . ' '; } } ?>" data-location="<?php echo strtolower($post['location_name']); ?>" data-content="<?php echo strtolower(strip_tags($post['content'])); ?>">
 
                     <!-- Title -->
                     <a href="<?php echo "post.php?id=" . $post['id']?>"><h3 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h3></a>
