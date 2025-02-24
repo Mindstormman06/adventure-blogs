@@ -25,7 +25,7 @@ Adventure Blog is a simple, customizable, and secure blog platform that allows u
 Clone this repository to your local machine:
 
 ```bash
-git clone https://github.com/Mindstormman06/adventure-blog.git
+git clone https://github.com/Mindstormman06/adventure-blogs.git
 cd adventure-blog
 ```
 
