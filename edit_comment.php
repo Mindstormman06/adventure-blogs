@@ -14,4 +14,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment_id']) && isset
 }
 
 header("Location: " . $_SERVER['HTTP_REFERER']);
-?>

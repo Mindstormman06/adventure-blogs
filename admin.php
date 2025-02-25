@@ -34,20 +34,20 @@ $users = $pdo->query("SELECT id, username, role FROM users")->fetchAll();
         <th>Action</th>
     </tr>
     <?php foreach ($users as $u): ?>
-    <tr>
-        <td><?php echo htmlspecialchars($u['username']); ?></td>
-        <td><?php echo htmlspecialchars($u['role']); ?></td>
-        <td>
-            <form method="post">
-                <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
-                <select name="role">
-                    <option value="user" <?php if ($u['role'] == 'user') echo "selected"; ?>>User</option>
-                    <option value="admin" <?php if ($u['role'] == 'admin') echo "selected"; ?>>Admin</option>
-                </select>
-                <button type="submit">Update</button>
-            </form>
-        </td>
-    </tr>
+        <tr>
+            <td><?php echo htmlspecialchars($u['username']); ?></td>
+            <td><?php echo htmlspecialchars($u['role']); ?></td>
+            <td>
+                <form method="post">
+                    <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
+                    <select name="role">
+                        <option value="user" <?php if ($u['role'] == 'user') echo "selected"; ?>>User</option>
+                        <option value="admin" <?php if ($u['role'] == 'admin') echo "selected"; ?>>Admin</option>
+                    </select>
+                    <button type="submit">Update</button>
+                </form>
+            </td>
+        </tr>
     <?php endforeach; ?>
 </table>
 

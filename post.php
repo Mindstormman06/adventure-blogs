@@ -1,6 +1,6 @@
-<?php 
-include 'header.php'; 
-include 'config.php'; 
+<?php
+include 'header.php';
+include 'config.php';
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -68,7 +68,8 @@ $commentStmt->execute([$postId]);
 $comments = $commentStmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Function to organize threaded comments
-function buildCommentTree($comments, $parentId = null) {
+function buildCommentTree($comments, $parentId = null)
+{
     $tree = [];
     foreach ($comments as $comment) {
         if ($comment['parent_id'] == $parentId) {
@@ -104,26 +105,26 @@ $postContent = $Parsedown->text($post['content']); // Convert Markdown to HTML
 <div class="container">
     <h2><?php echo htmlspecialchars($post['title']); ?></h2>
     <p style="display: flex; align-items: center;" class="post-username">
-        <a href="<?php echo 'user_profile.php?username=' . $post['username']?>" class="post-user-link link-primary">
-            <?php echo htmlspecialchars($post['username']);?>
-            <img src="<?php echo !empty($post['profile_photo']) ? htmlspecialchars($post['profile_photo']) : 'profile_photos/default_profile.png'; ?>" 
+        <a href="<?php echo 'user_profile.php?username=' . $post['username'] ?>" class="post-user-link link-primary">
+            <?php echo htmlspecialchars($post['username']); ?>
+            <img src="<?php echo !empty($post['profile_photo']) ? htmlspecialchars($post['profile_photo']) : 'profile_photos/default_profile.png'; ?>"
                 alt="Profile Photo" class="profile-photo-post">
         </a>
     </p>
     <!-- Post Tags -->
-    <p class="post-tags"><strong>Tags:</strong> 
-        <?php 
-            foreach ($tags1 as $tags) {
-                if ($tags['post_id'] == $post['id']) {   
-                    echo '#' . htmlspecialchars($tags['name']) . " ";
-                }
+    <p class="post-tags"><strong>Tags:</strong>
+        <?php
+        foreach ($tags1 as $tags) {
+            if ($tags['post_id'] == $post['id']) {
+                echo '#' . htmlspecialchars($tags['name']) . " ";
             }
+        }
         ?>
     </p>
 
     <?php if (!empty($post['location_name']) && !empty($post['latitude']) && !empty($post['longitude'])): ?>
         <p>
-            <strong>Location:</strong> 
+            <strong>Location:</strong>
             <a href="view_location.php?lat=<?php echo $post['latitude']; ?>&lng=<?php echo $post['longitude']; ?>&name=<?php echo $post['location_name']; ?>">
                 <?php echo htmlspecialchars($post['location_name']); ?>
             </a>
@@ -131,15 +132,15 @@ $postContent = $Parsedown->text($post['content']); // Convert Markdown to HTML
     <?php endif; ?>
     <!-- Render Markdown -->
     <p><?php echo $postContent; ?></p>
-     
+
 
     <?php if (isset($postFiles[$post['id']]) && is_array($postFiles[$post['id']])): ?>
         <?php foreach ($postFiles[$post['id']] as $file): ?>
-            <?php 
-                $fileExtension = pathinfo($file, PATHINFO_EXTENSION);
-                $isVideo = in_array(strtolower($fileExtension), $videoFileTypes);
-                $isAudio = in_array(strtolower($fileExtension), $audioFileTypes);
-                $isImage = !$isVideo && !$isAudio;
+            <?php
+            $fileExtension = pathinfo($file, PATHINFO_EXTENSION);
+            $isVideo = in_array(strtolower($fileExtension), $videoFileTypes);
+            $isAudio = in_array(strtolower($fileExtension), $audioFileTypes);
+            $isImage = !$isVideo && !$isAudio;
             ?>
 
             <?php if ($isVideo): ?>
@@ -150,12 +151,12 @@ $postContent = $Parsedown->text($post['content']); // Convert Markdown to HTML
 
             <?php if ($isAudio): ?>
                 <div>
-                    <?php 
-                        $i += 1;
-                        $originalName = $postFilesOriginal[$post['id']][$i];
-                        $displayName = mb_strimwidth($originalName, 0, 40, "..."); 
+                    <?php
+                    $i += 1;
+                    $originalName = $postFilesOriginal[$post['id']][$i];
+                    $displayName = mb_strimwidth($originalName, 0, 40, "...");
                     ?>
-                    <p style="margin-top: 15px"><?php echo htmlspecialchars($displayName);?></p>
+                    <p style="margin-top: 15px"><?php echo htmlspecialchars($displayName); ?></p>
                     <audio controls src="<?php echo htmlspecialchars($file); ?>" loop></audio>
                 </div>
             <?php endif; ?>
@@ -170,77 +171,78 @@ $postContent = $Parsedown->text($post['content']); // Convert Markdown to HTML
     <?php if (isset($_SESSION['user_id']) && $user && ($_SESSION['username'] == $post['username'] || $user['role'] == 'admin')): ?>
         <p class="post_controls">
             <a class="btn btn-warning" href="edit_post.php?id=<?php echo $post['id']; ?>">Edit</a>
-            <a class="btn btn-danger" href="delete_post.php?id=<?php echo $post['id']; ?>" 
-            onclick="return confirm('Are you sure you want to delete this post?');">Delete</a>
+            <a class="btn btn-danger" href="delete_post.php?id=<?php echo $post['id']; ?>"
+                onclick="return confirm('Are you sure you want to delete this post?');">Delete</a>
         </p>
     <?php endif; ?>
 
     <h3>Comments</h3>
     <!-- <?php foreach ($comments as $comment): ?>
-        <p><strong><a href="<?php echo 'user_profile.php?username=' . $comment['username']?>" class="post-user-link">
-                    <?php echo htmlspecialchars($comment['username']);?></i>
+        <p><strong><a href="<?php echo 'user_profile.php?username=' . $comment['username'] ?>" class="post-user-link">
+                    <?php echo htmlspecialchars($comment['username']); ?></i>
                     <img src="<?php echo !empty($comment['profile_photo']) ? htmlspecialchars($comment['profile_photo']) : 'profile_photos/default_profile.png'; ?>" 
                         alt="Profile Photo" class="profile-photo-post">
                 </a></strong><?php echo nl2br(htmlspecialchars($comment['comment_text'])); ?></p>
     <?php endforeach; ?> -->
 
     <div id="comments">
-    <?php function renderComments($comments) {
-        global $Parsedown;
-        foreach ($comments as $comment): ?>
-            <div class="comment" id="comment-<?php echo $comment['id']; ?>">
-                <p>
-                    <a href="<?php echo 'user_profile.php?username=' . $comment['username']?>" class="post-user-link link-primary">
-                        <strong><?php echo htmlspecialchars($comment['username']); ?></strong>
-                        <img src="<?php echo !empty($comment['profile_photo']) ? htmlspecialchars($comment['profile_photo']) : 'profile_photos/default_profile.png'; ?>" 
-                        alt="Profile Photo" class="profile-photo-post">
-                    </a>
-                    <small><?php echo $comment['created_at']; ?></small>
-                </p>
-                <p><?php echo $Parsedown->text($comment['comment_text']); ?></p>
+        <?php function renderComments($comments)
+        {
+            global $Parsedown;
+            foreach ($comments as $comment): ?>
+                <div class="comment" id="comment-<?php echo $comment['id']; ?>">
+                    <p>
+                        <a href="<?php echo 'user_profile.php?username=' . $comment['username'] ?>" class="post-user-link link-primary">
+                            <strong><?php echo htmlspecialchars($comment['username']); ?></strong>
+                            <img src="<?php echo !empty($comment['profile_photo']) ? htmlspecialchars($comment['profile_photo']) : 'profile_photos/default_profile.png'; ?>"
+                                alt="Profile Photo" class="profile-photo-post">
+                        </a>
+                        <small><?php echo $comment['created_at']; ?></small>
+                    </p>
+                    <p><?php echo $Parsedown->text($comment['comment_text']); ?></p>
 
-                <?php if ($comment['parent_id'] == null): ?>
-                    <button onclick="replyToComment(<?php echo $comment['id']; ?>)" 
-                        class="text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
-                        Reply
-                    </button>
-                <?php endif; ?>
+                    <?php if ($comment['parent_id'] == null): ?>
+                        <button onclick="replyToComment(<?php echo $comment['id']; ?>)"
+                            class="text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+                            Reply
+                        </button>
+                    <?php endif; ?>
 
-                <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $comment['user_id']): ?>
-                    <button onclick="editComment(<?php echo $comment['id']; ?>)" 
-                        class="text-black bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-4 focus:ring-yellow-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:focus:ring-yellow-900">
-                        Edit
-                    </button>
-                    <button onclick="deleteComment(<?php echo $comment['id']; ?>)"
-                        class="text-white bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
-                        Delete
-                    </button>
-                <?php endif; ?>
+                    <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $comment['user_id']): ?>
+                        <button onclick="editComment(<?php echo $comment['id']; ?>)"
+                            class="text-black bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-4 focus:ring-yellow-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:focus:ring-yellow-900">
+                            Edit
+                        </button>
+                        <button onclick="deleteComment(<?php echo $comment['id']; ?>)"
+                            class="text-white bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+                            Delete
+                        </button>
+                    <?php endif; ?>
 
-                <div id="edit-form-<?php echo $comment['id']; ?>" style="display: none;">
-                    <form method="post" action="edit_comment.php">
-                        <input type="hidden" name="comment_id" value="<?php echo $comment['id']; ?>">
-                        <textarea name="comment_text"><?php echo htmlspecialchars($comment['comment_text']); ?></textarea>
-                        <button type="submit">Save</button>
-                    </form>
-                </div>
-
-                <div id="reply-form-<?php echo $comment['id']; ?>" style="display: none;">
-                    <form method="post">
-                        <input type="hidden" name="parent_id" value="<?php echo $comment['id']; ?>">
-                        <textarea name="comment_text" required></textarea>
-                        <button type="submit" 
-                        class="text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
-                        Post Reply</button>
-                    </form>
-                </div>
-
-                <?php if (!empty($comment['replies'])): ?>
-                    <div class="replies">
-                        <?php renderComments($comment['replies']); ?>
+                    <div id="edit-form-<?php echo $comment['id']; ?>" style="display: none;">
+                        <form method="post" action="edit_comment.php">
+                            <input type="hidden" name="comment_id" value="<?php echo $comment['id']; ?>">
+                            <textarea name="comment_text"><?php echo htmlspecialchars($comment['comment_text']); ?></textarea>
+                            <button type="submit">Save</button>
+                        </form>
                     </div>
-                <?php endif; ?>
-            </div>
+
+                    <div id="reply-form-<?php echo $comment['id']; ?>" style="display: none;">
+                        <form method="post">
+                            <input type="hidden" name="parent_id" value="<?php echo $comment['id']; ?>">
+                            <textarea name="comment_text" required></textarea>
+                            <button type="submit"
+                                class="text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+                                Post Reply</button>
+                        </form>
+                    </div>
+
+                    <?php if (!empty($comment['replies'])): ?>
+                        <div class="replies">
+                            <?php renderComments($comment['replies']); ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
         <?php endforeach;
         }
         renderComments($commentTree);

@@ -1,4 +1,5 @@
 <?php
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -13,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = trim($_POST["username"]);
     $password = $_POST["password"];
     $email = trim($_POST["email"]);
-    
+
     if (!empty($username) && !empty($email) && !empty($password)) {
         // Check if the email already exists
         $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
@@ -36,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Send verification email using PHPMailer
             $verificationLink = "http://adventure-blog.ddns.net/verify_email.php?token=$verificationToken";
-            
+
             $mail = new PHPMailer(true);
             try {
                 // Server settings
@@ -47,7 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $mail->Password = $emailConfig['smtp_password']; // The 16-character app password you generated
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                 $mail->Port = $emailConfig['smtp_port'];
-                
+
                 $mail->setFrom($emailConfig['from_email'], $emailConfig['from_name']);
                 $mail->addAddress($email); // Recipient's email address
 

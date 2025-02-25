@@ -13,7 +13,7 @@ $videoFileTypes = ['mp4', 'ogg', 'webm', 'mov'];
 $audioFileTypes = ['mp3', 'wav', 'ogg', 'm4a', 'flac'];
 
 // Get the username from the URL
-$username = $_GET['username']; 
+$username = $_GET['username'];
 
 // Fetch user information
 $stmt = $pdo->prepare("SELECT id, username, email, profile_photo, instagram_link, website_link FROM users WHERE username = ?");
@@ -76,51 +76,53 @@ $Parsedown = new Parsedown(); // Initialize Parsedown
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 
     <!-- Display user posts in a tile view -->
-    
+
     <?php if (count($posts) > 0): ?>
 
         <div class="posts-grid">
             <?php foreach ($posts as $post): ?>
 
                 <?php
-                    $fileExtension = pathinfo($postFiles[$post['id']][0]);
-                    $isVideo = in_array(strtolower($fileExtension['extension']), $videoFileTypes);
-                    $isAudio = in_array(strtolower($fileExtension['extension']), $audioFileTypes);
-                    $isImage = !$isVideo && !$isAudio && !empty($post['image_path']);
+                $fileExtension = pathinfo($postFiles[$post['id']][0]);
+                $isVideo = in_array(strtolower($fileExtension['extension']), $videoFileTypes);
+                $isAudio = in_array(strtolower($fileExtension['extension']), $audioFileTypes);
+                $isImage = !$isVideo && !$isAudio && !empty($post['image_path']);
                 ?>
                 <div class="post-tile">
-                    
+
                     <!-- Title -->
-                    <a href="<?php echo "post.php?id=" . $post['id']?>"><h3 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h3></a>
-                    
+                    <a href="<?php echo "post.php?id=" . $post['id'] ?>">
+                        <h3 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h3>
+                    </a>
+
                     <!-- Posted Date -->
                     <p><i><?php echo date('F j, Y', strtotime($post['created_at'])); ?></i></p>
 
                     <!-- Tags -->
-                    <p class="post-tags"><strong>Tags:</strong> 
-                        <?php 
-                            foreach ($tags1 as $tags) {
-                                if ($tags['post_id'] == $post['id']) {   
-                                    echo '#' . htmlspecialchars($tags['name']) . " ";
-                                }
+                    <p class="post-tags"><strong>Tags:</strong>
+                        <?php
+                        foreach ($tags1 as $tags) {
+                            if ($tags['post_id'] == $post['id']) {
+                                echo '#' . htmlspecialchars($tags['name']) . " ";
                             }
+                        }
                         ?>
                     </p>
-                    
+
                     <!-- Display media content -->
                     <?php if (isset($postFiles[$post['id']]) && is_array($postFiles[$post['id']])): ?>
-                        <?php 
-                            $mediaCount = count($postFiles[$post['id']]); 
-                            $gridClass = $mediaCount >= 4 ? 'grid-2x2' : ($mediaCount == 2 ? 'grid-1x2' : 'grid-1x1');
+                        <?php
+                        $mediaCount = count($postFiles[$post['id']]);
+                        $gridClass = $mediaCount >= 4 ? 'grid-2x2' : ($mediaCount == 2 ? 'grid-1x2' : 'grid-1x1');
                         ?>
-                        
+
                         <div class="media-grid <?php echo $gridClass; ?>">
                             <?php foreach ($postFiles[$post['id']] as $file): ?>
-                                <?php 
-                                    $fileExtension = pathinfo($file, PATHINFO_EXTENSION);
-                                    $isVideo = in_array(strtolower($fileExtension), $videoFileTypes);
-                                    $isAudio = in_array(strtolower($fileExtension), $audioFileTypes);
-                                    $isImage = !$isVideo && !$isAudio;
+                                <?php
+                                $fileExtension = pathinfo($file, PATHINFO_EXTENSION);
+                                $isVideo = in_array(strtolower($fileExtension), $videoFileTypes);
+                                $isAudio = in_array(strtolower($fileExtension), $audioFileTypes);
+                                $isImage = !$isVideo && !$isAudio;
                                 ?>
 
                                 <?php if ($isVideo): ?>
@@ -146,7 +148,7 @@ $Parsedown = new Parsedown(); // Initialize Parsedown
     <?php else: ?>
         <p>No posts found for this user.</p>
     <?php endif; ?>
-    
+
 </div>
 
 <?php include 'footer.php'; ?>

@@ -26,11 +26,15 @@ $files = $stmt2->fetchAll(PDO::FETCH_COLUMN); // Fetch all associated files
 
 // Ensure we found tags associated with this post
 if ($tags) {
-    echo '<pre>'; print_r($tags); echo '</pre>';
+    echo '<pre>';
+    print_r($tags);
+    echo '</pre>';
 } else {
     echo "No tags associated with this post.";
 }
-echo '<pre>'; print_r($post); echo '</pre>';
+echo '<pre>';
+print_r($post);
+echo '</pre>';
 
 // Check if the current user is the author of the post or an admin
 if (isset($_SESSION['user_id']) && ($_SESSION['user_id'] == $post['user_id']) || ($_SESSION['role'] == 'admin')) {
@@ -74,4 +78,3 @@ if (isset($_SESSION['user_id']) && ($_SESSION['user_id'] == $post['user_id']) ||
 } else {
     die("Access denied.");
 }
-?>

@@ -22,4 +22,3 @@ if (!isset($_SESSION["user_id"]) && !isset($_COOKIE["remember_token"])) {
     header("Location: login.php");
     exit;
 }
-?>

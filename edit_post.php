@@ -46,12 +46,13 @@ $tagStmt = $pdo->query("
     INNER JOIN post_tags ON tags.id = post_tags.tag_id");
 $tags = $tagStmt->fetchAll();
 
-function getTags($tags1, $post1) {
+function getTags($tags1, $post1)
+{
     $postTagsArray = [];
 
     foreach ($tags1 as $tag) {
-        if ($tag['post_id'] == $post1['id']) {   
-            $postTagsArray[] = htmlspecialchars($tag['name']);       
+        if ($tag['post_id'] == $post1['id']) {
+            $postTagsArray[] = htmlspecialchars($tag['name']);
         }
     }
 
@@ -90,7 +91,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Rename file to include post ID and timestamp
             $customFileName = $post_id . "-" . time() . "-" . $key . "." . $fileExt;
-            
+
             // Move file to uploads directory
             $filePath = $uploadDir . $customFileName;
             move_uploaded_file($tmp_name, $filePath);
@@ -125,13 +126,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt = $pdo->prepare("SELECT id FROM tags WHERE name = ?");
             $stmt->execute([$tag]);
             $tag_id = $stmt->fetchColumn();
-        
+
             if (!$tag_id) {
                 $stmt = $pdo->prepare("INSERT INTO tags (name) VALUES (?)");
                 $stmt->execute([$tag]);
                 $tag_id = $pdo->lastInsertId();
             }
-        
+
             $pdo->prepare("INSERT INTO post_tags (post_id, tag_id) VALUES (?, ?)")->execute([$post_id, $tag_id]);
         }
     }
@@ -155,30 +156,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     exit;
 }
 ?>
+
 <head>
     <style>
         /* Tagify input field styling */
         .tagify__input {
-            min-width: 150px; /* Adjust width as needed */
+            min-width: 150px;
+            /* Adjust width as needed */
             padding-left: 10px;
             padding-right: 10px;
-            display: inline-block; /* Ensure it's displayed inline-block */
-            vertical-align: middle; /* Align it in the middle */
+            display: inline-block;
+            /* Ensure it's displayed inline-block */
+            vertical-align: middle;
+            /* Align it in the middle */
         }
 
         .tagify {
             display: flex;
             align-items: center;
-            min-height: 38px; /* Ensuring the container has a consistent height */
-            border: 1px solid #ccc; /* Adding border for a complete input field appearance */
-            padding: 5px; /* Adding padding for a consistent look */
+            min-height: 38px;
+            /* Ensuring the container has a consistent height */
+            border: 1px solid #ccc;
+            /* Adding border for a complete input field appearance */
+            padding: 5px;
+            /* Adding padding for a consistent look */
         }
 
         /* Placeholder text styling */
         .tagify__input::placeholder {
-            opacity: 0.5; /* Adjust opacity for better visibility */
-            padding-left: 10px; /* Ensure placeholder is well-aligned */
+            opacity: 0.5;
+            /* Adjust opacity for better visibility */
+            padding-left: 10px;
+            /* Ensure placeholder is well-aligned */
         }
+
         /* Container for the media gallery */
         .media-gallery {
             display: flex;
@@ -205,7 +216,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             position: absolute;
             top: 5px;
             right: 5px;
-            background-color: rgba(220, 53, 69, 0.8); /* Bootstrap's danger color with transparency */
+            background-color: rgba(220, 53, 69, 0.8);
+            /* Bootstrap's danger color with transparency */
             color: white;
             border: none;
             border-radius: 50%;
@@ -238,7 +250,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             width: 30px;
             height: 30px;
             border-radius: 5px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
             cursor: pointer;
         }
 
@@ -250,14 +262,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             background-color: rgba(255, 255, 255, 0.8);
             padding: 10px;
             border-radius: 5px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
-</style>
+    </style>
 </head>
 <div class="container">
     <h2>Edit Post</h2>
     <form method="post" enctype="multipart/form-data">
-        
+
         <!-- Title -->
         <div class="form-group">
             <label>Title:</label>
@@ -309,7 +321,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <label>Location Name:</label>
             <input type="text" name="location_name" id="location_name" class="form-control" value="<?php echo htmlspecialchars($post['location_name']); ?>" placeholder="Enter a location name">
         </div>
-        
+
         <!-- Location Selection -->
         <div class="form-group">
             <label>Select Location on Map:</label>
@@ -332,7 +344,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <!-- File Validation Script -->
 <script>
-    document.getElementById("file_input").addEventListener("change", function (event) {
+    document.getElementById("file_input").addEventListener("change", function(event) {
         var fileErrorsDiv = document.getElementById("fileErrors");
         var filePreviewDiv = document.getElementById("filePreview");
         fileErrorsDiv.innerHTML = ""; // Clear previous errors
@@ -394,7 +406,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         var existingMedia = document.querySelectorAll(".media-container .remove-checkbox:not(:checked)").length;
         var files = fileInput.files;
         var maxFiles = 10;
-        
+
         // Check if the total number of files exceeds the maximum allowed
         if (files.length + existingMedia > maxFiles) {
             event.preventDefault(); // Prevent form submission
@@ -438,13 +450,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     var map = L.map('map').setView([37.7749, -122.4194], 3);
     var greenIcon = new L.Icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
-        });
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
@@ -455,7 +467,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     var marker;
 
     if (latitude !== null && longitude !== null) {
-        marker = L.marker([latitude, longitude], { icon: greenIcon }).addTo(map);
+        marker = L.marker([latitude, longitude], {
+            icon: greenIcon
+        }).addTo(map);
         map.setView([latitude, longitude], 10);
         marker.bindPopup('<button onclick="removeMarker(event)">Remove Location</button>').openPopup();
     }
@@ -464,7 +478,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (marker) {
             map.removeLayer(marker);
         }
-        marker = L.marker(e.latlng, { icon: greenIcon }).addTo(map);
+        marker = L.marker(e.latlng, {
+            icon: greenIcon
+        }).addTo(map);
         document.getElementById("latitude").value = e.latlng.lat;
         document.getElementById("longitude").value = e.latlng.lng;
         marker.bindPopup('<button onclick="removeMarker(event)">Remove Location</button>').openPopup();
@@ -485,7 +501,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Add this inside the <script> tag that initializes the map
     var userMarker;
     var cachedPosition = null;
-    var locateControl = L.control({position: 'topright'});
+    var locateControl = L.control({
+        position: 'topright'
+    });
     locateControl.onAdd = function(map) {
         var div = L.DomUtil.create('div', 'leaflet-control-locate');
         div.title = 'Locate Me';
@@ -499,7 +517,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 if (userMarker) {
                     userMarker.setLatLng([lat, lng]);
                 } else {
-                    userMarker = L.marker([lat, lng], { icon: greenIcon }).addTo(map);
+                    userMarker = L.marker([lat, lng], {
+                        icon: greenIcon
+                    }).addTo(map);
                     userMarker.bindPopup('You are here').openPopup();
                 }
                 map.setView([lat, lng], 13);
@@ -512,7 +532,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     if (userMarker) {
                         userMarker.setLatLng([lat, lng]);
                     } else {
-                        userMarker = L.marker([lat, lng], { icon: greenIcon }).addTo(map);
+                        userMarker = L.marker([lat, lng], {
+                            icon: greenIcon
+                        }).addTo(map);
                         userMarker.bindPopup('You are here').openPopup();
                     }
                     map.setView([lat, lng], 13);
@@ -556,16 +578,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     });
 </script>
 <script>
-function removeMedia(button) {
-    // Get the parent container
-    var container = button.parentElement;
-    // Find the hidden checkbox
-    var checkbox = container.querySelector('.remove-checkbox');
-    // Check the checkbox to mark for removal
-    checkbox.checked = true;
-    // Hide the container visually
-    container.style.display = 'none';
-}
+    function removeMedia(button) {
+        // Get the parent container
+        var container = button.parentElement;
+        // Find the hidden checkbox
+        var checkbox = container.querySelector('.remove-checkbox');
+        // Check the checkbox to mark for removal
+        checkbox.checked = true;
+        // Hide the container visually
+        container.style.display = 'none';
+    }
 </script>
 
 <?php include 'footer.php'; ?>

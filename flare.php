@@ -55,6 +55,7 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Create Flare Post</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
@@ -72,6 +73,7 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
             margin-bottom: 25px;
             background-color: #ffac38;
         }
+
         #map {
             height: 75vh;
             width: 100%;
@@ -103,7 +105,7 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
             width: 30px;
             height: 30px;
             border-radius: 5px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
             cursor: pointer;
         }
 
@@ -115,7 +117,7 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
             background-color: rgba(255, 255, 255, 0.8);
             padding: 10px;
             border-radius: 5px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
     </style>
     <script>
@@ -160,7 +162,9 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
             var currentUser = '<?php echo $_SESSION['username']; ?>';
             var isAdmin = <?php echo json_encode($isAdmin); ?>;
             posts.forEach(function(post) {
-                var marker = L.marker([post.latitude, post.longitude], { icon: redIcon }).addTo(map);
+                var marker = L.marker([post.latitude, post.longitude], {
+                    icon: redIcon
+                }).addTo(map);
                 var popupContent = `
                     <h3>${post.title}</h3>
                     <p>by ${post.user}</p>
@@ -175,7 +179,9 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
             // Add locate button
             var userMarker;
             var cachedPosition = null;
-            var locateControl = L.control({position: 'topright'});
+            var locateControl = L.control({
+                position: 'topright'
+            });
             locateControl.onAdd = function(map) {
                 var div = L.DomUtil.create('div', 'leaflet-control-locate');
                 div.title = 'Locate Me';
@@ -189,7 +195,9 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         if (userMarker) {
                             userMarker.setLatLng([lat, lng]);
                         } else {
-                            userMarker = L.marker([lat, lng], { icon: redIcon }).addTo(map);
+                            userMarker = L.marker([lat, lng], {
+                                icon: redIcon
+                            }).addTo(map);
                             userMarker.bindPopup('You are here').openPopup();
                         }
                         map.setView([lat, lng], 13);
@@ -202,7 +210,9 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             if (userMarker) {
                                 userMarker.setLatLng([lat, lng]);
                             } else {
-                                userMarker = L.marker([lat, lng], { icon: redIcon }).addTo(map);
+                                userMarker = L.marker([lat, lng], {
+                                    icon: redIcon
+                                }).addTo(map);
                                 userMarker.bindPopup('You are here').openPopup();
                             }
                             map.setView([lat, lng], 13);
@@ -230,24 +240,27 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
         function deleteFlare(flarId) {
             if (confirm('Are you sure you want to delete this flare?')) {
                 fetch('delete_flare.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ id: flarId })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Error deleting flare: ' + data.message);
-                    }
-                });
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            id: flarId
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert('Error deleting flare: ' + data.message);
+                        }
+                    });
             }
         }
     </script>
 </head>
+
 <body onload="initMap()">
     <div class="container">
         <h1>🔥 Flare 🔥</h1>
@@ -258,4 +271,5 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
     <?php include 'footer.php'; ?>
 </body>
+
 </html>

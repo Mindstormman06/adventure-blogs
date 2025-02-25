@@ -14,12 +14,14 @@ $location_name = htmlspecialchars($_GET['name']);
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <title>Post Location</title>
 
     <!-- Load Leaflet from CDN -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
+
 <body>
 
     <!-- Display the map -->
@@ -48,11 +50,14 @@ $location_name = htmlspecialchars($_GET['name']);
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        L.marker([<?php echo $latitude; ?>, <?php echo $longitude; ?>], { icon: greenIcon }).addTo(map)
+        L.marker([<?php echo $latitude; ?>, <?php echo $longitude; ?>], {
+                icon: greenIcon
+            }).addTo(map)
             .bindPopup("<?php echo $location_name ?>").openPopup();
     </script>
 
 </body>
+
 </html>
 
 <?php include 'footer.php'; ?>

@@ -25,24 +25,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit;
         } elseif ($user['verified'] == 1) {
 
-        // Set the session variables
-        $_SESSION["user_id"] = $user["id"];
-        $_SESSION["username"] = $username;
-        $_SESSION["role"] = $user["role"];
+            // Set the session variables
+            $_SESSION["user_id"] = $user["id"];
+            $_SESSION["username"] = $username;
+            $_SESSION["role"] = $user["role"];
 
-        if ($remember) {
-            $token = bin2hex(random_bytes(32));
-            $expiry = time() + 60 * 60 * 24 * 30; // 30 days
+            if ($remember) {
+                $token = bin2hex(random_bytes(32));
+                $expiry = time() + 60 * 60 * 24 * 30; // 30 days
 
-            $stmt = $pdo->prepare("UPDATE users set remember_token = ? WHERE id = ?");
-            $stmt->execute([$token, $user["id"]]);
+                $stmt = $pdo->prepare("UPDATE users set remember_token = ? WHERE id = ?");
+                $stmt->execute([$token, $user["id"]]);
 
-            setcookie("remember_token", $token, $expiry, "/", "", false, true);
-        }
+                setcookie("remember_token", $token, $expiry, "/", "", false, true);
+            }
 
 
-        header("Location: index.php");
-        exit;
+            header("Location: index.php");
+            exit;
         }
     } else {
         echo "<p>Invalid username or password.</p>";

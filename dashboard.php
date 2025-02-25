@@ -1,6 +1,6 @@
-<?php 
-include 'auth.php'; 
-include 'header.php'; 
+<?php
+include 'auth.php';
+include 'header.php';
 include 'config.php';
 
 // Check if user is an admin or user
@@ -51,9 +51,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Allowed File Data
         $allowedTypes = [
-            "image/jpeg", "image/png", "image/gif",
-            "video/mp4", "video/webm", "video/quicktime",
-            "audio/mpeg", "audio/wav", "audio/ogg", "audio/mp4", "audio/x-m4a", "audio/flac"
+            "image/jpeg",
+            "image/png",
+            "image/gif",
+            "video/mp4",
+            "video/webm",
+            "video/quicktime",
+            "audio/mpeg",
+            "audio/wav",
+            "audio/ogg",
+            "audio/mp4",
+            "audio/x-m4a",
+            "audio/flac"
         ];
         $maxFileSize = 100 * 1024 * 1024; // 32MB max per file
         $targetDir = "uploads/";
@@ -103,14 +112,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 //     $ffmegPath = "\"C:\\ffmpeg-master-latest-win64-gpl\\bin\\ffmpeg.exe\"";
                 //     $ffmpegCmd = $ffmegPath . " -i " . escapeshellarg($filePath) . " -ab 192k -y " . escapeshellarg($mp3FilePath) . " 2>&1";
                 //     shell_exec($ffmpegCmd);
-        
+
                 //     echo "<pre>";
                 //     echo "Command: " . $ffmpegCmd . "\n";
 
                 //     unlink($filePath);
 
                 //     $filePath = $mp3FilePath;
-                   
+
                 // }
 
                 // Insert file path into post_files table
@@ -127,13 +136,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $stmt = $pdo->prepare("SELECT id FROM tags WHERE name = ?");
                 $stmt->execute([$tag]);
                 $tag_id = $stmt->fetchColumn();
-            
+
                 if (!$tag_id) {
                     $stmt = $pdo->prepare("INSERT INTO tags (name) VALUES (?)");
                     $stmt->execute([$tag]);
                     $tag_id = $pdo->lastInsertId();
                 }
-            
+
                 $pdo->prepare("INSERT INTO post_tags (post_id, tag_id) VALUES (?, ?)")->execute([$post_id, $tag_id]);
             }
         }
@@ -144,29 +153,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
+
 <head>
     <style>
         /* Tagify input field styling */
         .tagify__input {
-            min-width: 150px; /* Adjust width as needed */
+            min-width: 150px;
+            /* Adjust width as needed */
             padding-left: 10px;
             padding-right: 10px;
-            display: inline-block; /* Ensure it's displayed inline-block */
-            vertical-align: middle; /* Align it in the middle */
+            display: inline-block;
+            /* Ensure it's displayed inline-block */
+            vertical-align: middle;
+            /* Align it in the middle */
         }
 
         .tagify {
             display: flex;
             align-items: center;
-            min-height: 38px; /* Ensuring the container has a consistent height */
-            border: 1px solid #ccc; /* Adding border for a complete input field appearance */
-            padding: 5px; /* Adding padding for a consistent look */
+            min-height: 38px;
+            /* Ensuring the container has a consistent height */
+            border: 1px solid #ccc;
+            /* Adding border for a complete input field appearance */
+            padding: 5px;
+            /* Adding padding for a consistent look */
         }
 
         /* Placeholder text styling */
         .tagify__input::placeholder {
-            opacity: 0.5; /* Adjust opacity for better visibility */
-            padding-left: 10px; /* Ensure placeholder is well-aligned */
+            opacity: 0.5;
+            /* Adjust opacity for better visibility */
+            padding-left: 10px;
+            /* Ensure placeholder is well-aligned */
         }
 
         /* Add this inside the <style> tag */
@@ -179,7 +197,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             width: 30px;
             height: 30px;
             border-radius: 5px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
             cursor: pointer;
         }
 
@@ -191,14 +209,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             background-color: rgba(255, 255, 255, 0.8);
             padding: 10px;
             border-radius: 5px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
     </style>
 </head>
 <div class="container">
     <h2>Create a New Post</h2>
     <form method="post" enctype="multipart/form-data" onsubmit="return validatePost()">
-       
+
         <!-- Title -->
         <div class="form-group">
             <label>Title:</label>
@@ -226,7 +244,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="form-group">
             <label>Tags (Hit Enter after each tag):</label>
             <input type="text" name="tags" placeholder="e.g. travel, adventure, hiking">
-        </div>    
+        </div>
 
         <!-- Location Name -->
         <div class="form-group">
@@ -256,7 +274,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <!-- File Validation Script -->
 <script>
-    document.getElementById("file_input").addEventListener("change", function (event) {
+    document.getElementById("file_input").addEventListener("change", function(event) {
         var fileErrorsDiv = document.getElementById("fileErrors");
         var filePreviewDiv = document.getElementById("filePreview");
         fileErrorsDiv.innerHTML = ""; // Clear previous errors
@@ -311,7 +329,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
     });
-
 </script>
 
 <!-- Post Validation Script + Map Script -->
@@ -356,19 +373,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     var marker;
 
     var greenIcon = new L.Icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
-        });
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
 
     function onMapClick(e) {
         if (marker) {
             map.removeLayer(marker);
         }
-        marker = L.marker(e.latlng, { icon: greenIcon }).addTo(map);
+        marker = L.marker(e.latlng, {
+            icon: greenIcon
+        }).addTo(map);
         document.getElementById("latitude").value = e.latlng.lat;
         document.getElementById("longitude").value = e.latlng.lng;
     }
@@ -378,7 +397,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Add this inside the <script> tag that initializes the map
     var userMarker;
     var cachedPosition = null;
-    var locateControl = L.control({position: 'topright'});
+    var locateControl = L.control({
+        position: 'topright'
+    });
     locateControl.onAdd = function(map) {
         var div = L.DomUtil.create('div', 'leaflet-control-locate');
         div.title = 'Locate Me';
@@ -392,7 +413,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 if (userMarker) {
                     userMarker.setLatLng([lat, lng]);
                 } else {
-                    userMarker = L.marker([lat, lng], { icon: greenIcon }).addTo(map);
+                    userMarker = L.marker([lat, lng], {
+                        icon: greenIcon
+                    }).addTo(map);
                     userMarker.bindPopup('You are here').openPopup();
                 }
                 map.setView([lat, lng], 13);
@@ -405,7 +428,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     if (userMarker) {
                         userMarker.setLatLng([lat, lng]);
                     } else {
-                        userMarker = L.marker([lat, lng], { icon: greenIcon }).addTo(map);
+                        userMarker = L.marker([lat, lng], {
+                            icon: greenIcon
+                        }).addTo(map);
                         userMarker.bindPopup('You are here').openPopup();
                     }
                     map.setView([lat, lng], 13);

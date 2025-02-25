@@ -20,12 +20,13 @@ $backgrounds = scandir('backgrounds/'); // get all files into an array
 $backgrounds = array_diff($backgrounds, array('.', '..')); // remove . and .. from array
 
 // Randomly choose a background image
-$i = rand(2, count($backgrounds)-1); // generate random number size of the array
+$i = rand(2, count($backgrounds) - 1); // generate random number size of the array
 $selectedBg = "$backgrounds[$i]"; // set variable equal to which random filename was chosen
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -38,7 +39,7 @@ $selectedBg = "$backgrounds[$i]"; // set variable equal to which random filename
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 
@@ -85,11 +86,14 @@ $selectedBg = "$backgrounds[$i]"; // set variable equal to which random filename
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <div class="user-info">
                         <img src="<?php echo !empty($user['profile_photo']) ? htmlspecialchars($user['profile_photo']) : 'profile_photos/default_profile.png'; ?>" alt="Profile Photo" class="profile-photo-header">
-                        <a href="<?php echo 'user_profile.php?username=' . $user['username']?>" class="username"><?php echo htmlspecialchars($user['username']); ?> <?php if ($user['role'] == 'admin') { echo '(' . htmlspecialchars($user['role']) . ')';} ?></a>
+                        <a href="<?php echo 'user_profile.php?username=' . $user['username'] ?>" class="username"><?php echo htmlspecialchars($user['username']); ?> <?php if ($user['role'] == 'admin') {
+                                                                                                                                                                        echo '(' . htmlspecialchars($user['role']) . ')';
+                                                                                                                                                                    } ?></a>
                     </div>
                 <?php endif; ?>
             </nav>
         </div>
     </header>
 </body>
+
 </html>

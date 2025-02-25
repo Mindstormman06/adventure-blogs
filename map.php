@@ -29,16 +29,18 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <title>Locations</title>
 
     <!-- Load Leaflet from CDN -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        #map { 
+        #map {
             height: 60vh;
-            width: 100%; 
+            width: 100%;
         }
+
         .container {
             display: flex;
             justify-content: center;
@@ -50,6 +52,7 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
             margin-top: 25px;
             margin-bottom: 25px;
         }
+
         #map {
             height: 75vh;
             width: 100%;
@@ -59,6 +62,7 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
             margin-bottom: 15px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
         }
+
         .leaflet-control-locate {
             background-color: white;
             background-image: url('https://cdn-icons-png.flaticon.com/512/684/684908.png');
@@ -68,9 +72,10 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
             width: 30px;
             height: 30px;
             border-radius: 5px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
             cursor: pointer;
         }
+
         .loading-indicator {
             display: none;
             position: absolute;
@@ -79,10 +84,11 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
             background-color: rgba(255, 255, 255, 0.8);
             padding: 10px;
             border-radius: 5px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
     </style>
 </head>
+
 <body>
 
     <!-- Display the map -->
@@ -140,7 +146,9 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
         // Add markers for each post
         posts.forEach(post => {
             if (post.latitude && post.longitude && !isNaN(post.latitude) && !isNaN(post.longitude)) {
-                var marker = L.marker([parseFloat(post.latitude), parseFloat(post.longitude)], { icon: greenIcon }).addTo(map)
+                var marker = L.marker([parseFloat(post.latitude), parseFloat(post.longitude)], {
+                        icon: greenIcon
+                    }).addTo(map)
                     .bindPopup(`<div>
                                     <h4>${post.title}</h4>
                                     <p>By: ${post.username}</p>
@@ -155,7 +163,9 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
         // Add markers for each flare post
         flare_posts.forEach(flare_post => {
             if (flare_post.latitude && flare_post.longitude && !isNaN(flare_post.latitude) && !isNaN(flare_post.longitude)) {
-                var flareMarker = L.marker([parseFloat(flare_post.latitude), parseFloat(flare_post.longitude)], { icon: redIcon }).addTo(map)
+                var flareMarker = L.marker([parseFloat(flare_post.latitude), parseFloat(flare_post.longitude)], {
+                        icon: redIcon
+                    }).addTo(map)
                     .bindPopup(`<div>
                                     <h4>${flare_post.title}</h4>
                                     <p>By: ${flare_post.user}</p>
@@ -191,7 +201,9 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
         // Add locate button
         var userMarker;
         var cachedPosition = null;
-        var locateControl = L.control({position: 'topright'});
+        var locateControl = L.control({
+            position: 'topright'
+        });
         locateControl.onAdd = function(map) {
             var div = L.DomUtil.create('div', 'leaflet-control-locate');
             div.title = 'Locate Me';
@@ -205,7 +217,9 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
                     if (userMarker) {
                         userMarker.setLatLng([lat, lng]);
                     } else {
-                        userMarker = L.marker([lat, lng], { icon: redIcon }).addTo(map);
+                        userMarker = L.marker([lat, lng], {
+                            icon: redIcon
+                        }).addTo(map);
                         userMarker.bindPopup('You are here').openPopup();
                     }
                     map.setView([lat, lng], 13);
@@ -218,7 +232,9 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
                         if (userMarker) {
                             userMarker.setLatLng([lat, lng]);
                         } else {
-                            userMarker = L.marker([lat, lng], { icon: redIcon }).addTo(map);
+                            userMarker = L.marker([lat, lng], {
+                                icon: redIcon
+                            }).addTo(map);
                             userMarker.bindPopup('You are here').openPopup();
                         }
                         map.setView([lat, lng], 13);
@@ -238,6 +254,7 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
     </script>
 
 </body>
+
 </html>
 
 <?php include 'footer.php'; ?>

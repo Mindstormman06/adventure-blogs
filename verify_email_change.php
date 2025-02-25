@@ -21,4 +21,3 @@ $stmt = $pdo->prepare("UPDATE users SET email = ?, pending_email = NULL, verific
 $stmt->execute([$user['pending_email'], $user['id']]);
 
 echo "Email successfully updated!";
-?>

@@ -29,7 +29,7 @@ if ($user && password_verify($password, $user["password_hash"])) {
         "role" => $user["role"],
         "exp" => time() + 86400  // Token valid for 24 hours
     ];
-    
+
     $jwt_secret = "testkey"; // Store this securely (e.g., in an environment variable)
     // Encode JWT payload to create the token
     $jwt_token = base64_encode(json_encode($jwt_payload));
@@ -51,4 +51,3 @@ if ($user && password_verify($password, $user["password_hash"])) {
 }
 
 $conn->close();
-?>

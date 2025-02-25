@@ -31,4 +31,3 @@ $stmt = $pdo->prepare("DELETE FROM flare_posts WHERE id = ?");
 $stmt->execute([$flareId]);
 
 echo json_encode(['success' => true]);
-?>

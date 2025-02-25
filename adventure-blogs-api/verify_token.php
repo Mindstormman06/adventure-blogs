@@ -1,13 +1,14 @@
 <?php
 $jwt_secret = "testkey"; // Use the same key as in auth.php
 
-function verifyJWT($token) {
+function verifyJWT($token)
+{
     $decoded = json_decode(base64_decode($token), true);
-    
+
     if (!$decoded || !isset($decoded["exp"]) || $decoded["exp"] < time()) {
         return null; // Token is expired or invalid
     }
-    
+
     return $decoded; // Token is valid
 }
 
@@ -25,4 +26,3 @@ if (!$user_data) {
     echo json_encode(["status" => "error", "message" => "Invalid or expired token"]);
     exit;
 }
-?>

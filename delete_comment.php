@@ -20,4 +20,3 @@ $stmt = $pdo->prepare("DELETE FROM comments WHERE id = ?");
 $stmt->execute([$comment_id]);
 
 header("Location: " . $_SERVER['HTTP_REFERER']);
-?>

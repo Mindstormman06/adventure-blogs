@@ -51,7 +51,8 @@ while ($row = $postFilesStmt->fetch(PDO::FETCH_ASSOC)) {
 $Parsedown = new Parsedown(); // Initialize Parsedown
 
 // Function to calculate how long ago a post was submitted
-function timeAgo($datetime, $timezone = 'UTC') {
+function timeAgo($datetime, $timezone = 'UTC')
+{
     $now = new DateTime("now", new DateTimeZone($timezone));
     $postTime = new DateTime($datetime, new DateTimeZone($timezone));
     $diff = $now->diff($postTime);
@@ -79,218 +80,228 @@ function timeAgo($datetime, $timezone = 'UTC') {
 }
 
 // Function to format date as YYYY/MM/DD
-function formatDate($datetime, $timezone = 'UTC') {
+function formatDate($datetime, $timezone = 'UTC')
+{
     $date = new DateTime($datetime, new DateTimeZone($timezone));
     return $date->format('Y/m/d');  // Format as YYYY/MM/DD
 }
 ?>
+
 <body>
-<div class="container">
-    <h1>Recent Posts</h1>
+    <div class="container">
+        <h1>Recent Posts</h1>
 
-    <?php foreach ($posts as $post):
-        // Check type of uploaded files
-        $fileExtension = pathinfo($postFiles[$post['id']][0]);
-        $isVideo = in_array(strtolower($fileExtension['extension']), $videoFileTypes);
-        $isAudio = in_array(strtolower($fileExtension['extension']), $audioFileTypes);
-        $isImage = !$isVideo && !$isAudio && !empty($post['image_path']);
-        $i = -1;
-        
-        // Set User ID
-        $postUserID = $post['username'];
+        <?php foreach ($posts as $post):
+            // Check type of uploaded files
+            $fileExtension = pathinfo($postFiles[$post['id']][0]);
+            $isVideo = in_array(strtolower($fileExtension['extension']), $videoFileTypes);
+            $isAudio = in_array(strtolower($fileExtension['extension']), $audioFileTypes);
+            $isImage = !$isVideo && !$isAudio && !empty($post['image_path']);
+            $i = -1;
 
-        // Get the post tags
-        foreach ($tags1 as $tags) {
-            if ($tags['post_id'] == $post['id']) {
-                $postTag = $tags;
+            // Set User ID
+            $postUserID = $post['username'];
+
+            // Get the post tags
+            foreach ($tags1 as $tags) {
+                if ($tags['post_id'] == $post['id']) {
+                    $postTag = $tags;
+                }
             }
-        }
 
-        // Convert Markdown to HTML safely
-        $postContent = $Parsedown->text($post['content']);
+            // Convert Markdown to HTML safely
+            $postContent = $Parsedown->text($post['content']);
 
-        // Format the post date and calculate time ago
-        $formattedPostDate = formatDate($post['created_at'], 'UTC');
-        $timeAgo = timeAgo($post['created_at'], 'UTC');
-    ?>
-        <div class="post" data-username="<?php echo strtolower($post['username']); ?>" data-tags="<?php foreach ($tags1 as $tag) { if ($tag['post_id'] == $post['id']) { echo strtolower($tag['name']) . ' '; } } ?>" data-location="<?php echo strtolower($post['location_name']); ?>" data-content="<?php echo strtolower(strip_tags($post['content'])); ?>">
-            
-            <!-- Post title -->
-            <h2 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h2>
+            // Format the post date and calculate time ago
+            $formattedPostDate = formatDate($post['created_at'], 'UTC');
+            $timeAgo = timeAgo($post['created_at'], 'UTC');
+        ?>
+            <div class="post" data-username="<?php echo strtolower($post['username']); ?>" data-tags="<?php foreach ($tags1 as $tag) {
+                                                                                                            if ($tag['post_id'] == $post['id']) {
+                                                                                                                echo strtolower($tag['name']) . ' ';
+                                                                                                            }
+                                                                                                        } ?>" data-location="<?php echo strtolower($post['location_name']); ?>" data-content="<?php echo strtolower(strip_tags($post['content'])); ?>">
 
-            <!-- Debug Prints -->
-            <?php // echo '<pre>'; print_r($postTags); echo '</pre>'; ?>
-            <?php // echo '<pre>'; print_r($postTag); echo '</pre>'; ?>
-            <?php // echo '<pre>'; print_r($post); echo '</pre>'; ?>
+                <!-- Post title -->
+                <h2 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h2>
 
-            <!-- Posted by user -->
-            <p style="display: flex; align-items: center;" class="post-username">
-                <a href="<?php echo 'user_profile.php?username=' . $post['username']?>" class="post-user-link link-primary">
-                    <?php echo htmlspecialchars($post['username']);?>
-                    <img src="<?php echo !empty($post['profile_photo']) ? htmlspecialchars($post['profile_photo']) : 'profile_photos/default_profile.png'; ?>" 
-                        alt="Profile Photo" class="profile-photo-post">
-                </a>
-            </p>
+                <!-- Debug Prints -->
+                <?php // echo '<pre>'; print_r($postTags); echo '</pre>'; 
+                ?>
+                <?php // echo '<pre>'; print_r($postTag); echo '</pre>'; 
+                ?>
+                <?php // echo '<pre>'; print_r($post); echo '</pre>'; 
+                ?>
 
-            <!-- Posted Date/Time -->
-            <p>
-                <i>Posted on 
-                <span class="post-time" data-time="<?php echo htmlspecialchars($post['created_at']); ?>">
-                    <?php echo $formattedPostDate; ?>
-                </span>
-                </i>
-            </p>
+                <!-- Posted by user -->
+                <p style="display: flex; align-items: center;" class="post-username">
+                    <a href="<?php echo 'user_profile.php?username=' . $post['username'] ?>" class="post-user-link link-primary">
+                        <?php echo htmlspecialchars($post['username']); ?>
+                        <img src="<?php echo !empty($post['profile_photo']) ? htmlspecialchars($post['profile_photo']) : 'profile_photos/default_profile.png'; ?>"
+                            alt="Profile Photo" class="profile-photo-post">
+                    </a>
+                </p>
 
-            <!-- Post Tags -->
-            
-            <?php if (!empty($postTag)):?>
-                <p class="post-tags"><strong>Tags:</strong> 
-                    <?php 
+                <!-- Posted Date/Time -->
+                <p>
+                    <i>Posted on
+                        <span class="post-time" data-time="<?php echo htmlspecialchars($post['created_at']); ?>">
+                            <?php echo $formattedPostDate; ?>
+                        </span>
+                    </i>
+                </p>
+
+                <!-- Post Tags -->
+
+                <?php if (!empty($postTag)): ?>
+                    <p class="post-tags"><strong>Tags:</strong>
+                        <?php
                         foreach ($tags1 as $tags) {
-                            if ($tags['post_id'] == $post['id']) {   
+                            if ($tags['post_id'] == $post['id']) {
                                 echo '#' . htmlspecialchars($tags['name']) . " ";
                             }
                         }
-                    ?>
-                </p>
-            <?php endif; ?>
+                        ?>
+                    </p>
+                <?php endif; ?>
 
-            <!-- Display location if available -->
-            <?php if (!empty($post['location_name']) && !empty($post['latitude']) && !empty($post['longitude'])): ?>
-                <p class="post-location">
-                    <strong>Location:</strong> 
-                    <a href="view_location.php?lat=<?php echo $post['latitude']; ?>&lng=<?php echo $post['longitude']; ?>&name=<?php echo $post['location_name']; ?>">
-                        <?php echo htmlspecialchars($post['location_name']); ?>
-                    </a>
-                </p>
-            <?php endif; ?>
+                <!-- Display location if available -->
+                <?php if (!empty($post['location_name']) && !empty($post['latitude']) && !empty($post['longitude'])): ?>
+                    <p class="post-location">
+                        <strong>Location:</strong>
+                        <a href="view_location.php?lat=<?php echo $post['latitude']; ?>&lng=<?php echo $post['longitude']; ?>&name=<?php echo $post['location_name']; ?>">
+                            <?php echo htmlspecialchars($post['location_name']); ?>
+                        </a>
+                    </p>
+                <?php endif; ?>
 
-            <!-- Render Markdown -->
-            <p><?php echo $postContent; ?></p> 
+                <!-- Render Markdown -->
+                <p><?php echo $postContent; ?></p>
 
-            <!-- Display media content -->
-            <div class="post-media">
-                <?php if (isset($postFiles[$post['id']]) && is_array($postFiles[$post['id']])): ?>
-                    <?php foreach ($postFiles[$post['id']] as $file): ?>
-                        <?php 
+                <!-- Display media content -->
+                <div class="post-media">
+                    <?php if (isset($postFiles[$post['id']]) && is_array($postFiles[$post['id']])): ?>
+                        <?php foreach ($postFiles[$post['id']] as $file): ?>
+                            <?php
                             $fileExtension = pathinfo($file, PATHINFO_EXTENSION);
                             $isVideo = in_array(strtolower($fileExtension), $videoFileTypes);
                             $isAudio = in_array(strtolower($fileExtension), $audioFileTypes);
                             $isImage = !$isVideo && !$isAudio;
-                        ?>
+                            ?>
 
-                        <?php if ($isVideo): ?>
-                            <video controls src="<?php echo htmlspecialchars($file); ?>" autoplay muted loop></video>
-                        <?php endif; ?>
+                            <?php if ($isVideo): ?>
+                                <video controls src="<?php echo htmlspecialchars($file); ?>" autoplay muted loop></video>
+                            <?php endif; ?>
 
-                        <?php if ($isAudio): ?>
-                            <div>
-                                <?php 
+                            <?php if ($isAudio): ?>
+                                <div>
+                                    <?php
                                     $i += 1; // Increment $i for each file
                                     $originalName = $postFilesOriginal[$post['id']][$i];
-                                    $displayName = mb_strimwidth($originalName, 0, 36, "..."); 
-                                ?>
-                                <p style="margin-top: 5px"><?php echo htmlspecialchars($displayName);?></p>
-                                <audio controls src="<?php echo htmlspecialchars($file); ?>" loop></audio>
-                            </div>
-                        <?php endif; ?>
+                                    $displayName = mb_strimwidth($originalName, 0, 36, "...");
+                                    ?>
+                                    <p style="margin-top: 5px"><?php echo htmlspecialchars($displayName); ?></p>
+                                    <audio controls src="<?php echo htmlspecialchars($file); ?>" loop></audio>
+                                </div>
+                            <?php endif; ?>
 
-                        <?php if ($isImage): ?>
-                            <img src="<?php echo htmlspecialchars($file); ?>" alt="Uploaded Image">
-                        <?php endif; ?>
-                    <?php endforeach; ?>
+                            <?php if ($isImage): ?>
+                                <img src="<?php echo htmlspecialchars($file); ?>" alt="Uploaded Image">
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+
+                <!-- View Comments Button -->
+                <a class="" href="post.php?id=<?php echo $post['id']; ?>">
+                    <button type="button" class="btn btn-primary" style="margin-top: 10px">View Comments</button>
+                </a>
+
+                <!-- Post Controls -->
+                <?php if (isset($_SESSION['user_id']) && $user && ($_SESSION['username'] == $post['username'] || $user['role'] == 'admin')): ?>
+                    <div class="flex gap-2 mt-2 md:mt-0">
+                        <a href="edit_post.php?id=<?php echo $post['id']; ?>">
+                            <button type="button" class="btn btn-warning">
+                                Edit
+                            </button>
+                        </a>
+
+                        <a href="delete_post.php?id=<?php echo $post['id']; ?>" onclick="return confirm('Are you sure you want to delete this post?');">
+                            <button type="button" class="btn btn-danger">
+                                Delete
+                            </button>
+                        </a>
+                    </div>
                 <?php endif; ?>
             </div>
+        <?php endforeach; ?>
+    </div>
 
-            <!-- View Comments Button -->
-            <a class="" href="post.php?id=<?php echo $post['id']; ?>">
-                <button type="button" class="btn btn-primary" style="margin-top: 10px">View Comments</button>
-            </a>
-            
-            <!-- Post Controls -->
-            <?php if (isset($_SESSION['user_id']) && $user && ($_SESSION['username'] == $post['username'] || $user['role'] == 'admin')): ?>
-            <div class="flex gap-2 mt-2 md:mt-0">
-                <a href="edit_post.php?id=<?php echo $post['id']; ?>">
-                    <button type="button" class="btn btn-warning">
-                        Edit
-                    </button>
-                </a>
+    <?php include 'footer.php'; ?>
 
-                <a href="delete_post.php?id=<?php echo $post['id']; ?>" onclick="return confirm('Are you sure you want to delete this post?');">
-                    <button type="button" class="btn btn-danger">
-                        Delete
-                    </button>
-                </a>
-            </div>
-    <?php endif; ?>
-        </div>
-    <?php endforeach; ?>
-</div>
+    <!-- Script to display the time difference in a human-readable format -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            document.querySelectorAll(".post-time").forEach(function(element) {
+                let pstTime = element.getAttribute("data-time");
 
-<?php include 'footer.php'; ?>
+                if (!pstTime) return; // Skip if no timestamp found
 
-<!-- Script to display the time difference in a human-readable format -->
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    document.querySelectorAll(".post-time").forEach(function(element) {
-        let pstTime = element.getAttribute("data-time");
+                let dateObjPST = new Date(pstTime); // Stored PST timestamp
+                if (isNaN(dateObjPST.getTime())) { // Check for invalid date
+                    console.error("Invalid date format for:", pstTime);
+                    element.innerText = "Error loading time";
+                    return;
+                }
 
-        if (!pstTime) return; // Skip if no timestamp found
+                // Step 1: Convert PST → UTC (Add 8 hours)
+                let dateObjUTC = new Date(dateObjPST.getTime() + (8 * 60 * 60 * 1000));
 
-        let dateObjPST = new Date(pstTime); // Stored PST timestamp
-        if (isNaN(dateObjPST.getTime())) {  // Check for invalid date
-            console.error("Invalid date format for:", pstTime);
-            element.innerText = "Error loading time";
-            return;
-        }
+                // Step 2: Convert UTC → Local Time (Based on viewer's timezone)
+                let localTime = new Date(dateObjUTC.getTime() - dateObjUTC.getTimezoneOffset() * 60000);
 
-        // Step 1: Convert PST → UTC (Add 8 hours)
-        let dateObjUTC = new Date(dateObjPST.getTime() + (8 * 60 * 60 * 1000));
+                // console.log("Stored PST Time:", pstTime);
+                // console.log("Converted UTC Time:", dateObjUTC.toISOString());
+                // console.log("Viewer's Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+                // console.log("Local Time:", localTime.toLocaleString());
 
-        // Step 2: Convert UTC → Local Time (Based on viewer's timezone)
-        let localTime = new Date(dateObjUTC.getTime() - dateObjUTC.getTimezoneOffset() * 60000);
+                // Format the local date as YYYY/MM/DD
+                let formattedDate = localTime.getFullYear() + '/' +
+                    ('0' + (localTime.getMonth() + 1)).slice(-2) + '/' +
+                    ('0' + localTime.getDate()).slice(-2);
 
-        // console.log("Stored PST Time:", pstTime);
-        // console.log("Converted UTC Time:", dateObjUTC.toISOString());
-        // console.log("Viewer's Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
-        // console.log("Local Time:", localTime.toLocaleString());
+                // Get the time difference (e.g., "2 hours ago", "3 days ago", etc.)
+                let timeAgo = getTimeAgo(localTime);
 
-        // Format the local date as YYYY/MM/DD
-        let formattedDate = localTime.getFullYear() + '/' + 
-                            ('0' + (localTime.getMonth() + 1)).slice(-2) + '/' + 
-                            ('0' + localTime.getDate()).slice(-2);
+                // Display the formatted date and time difference
+                element.innerText = `${formattedDate} (${timeAgo})`;
+            });
 
-        // Get the time difference (e.g., "2 hours ago", "3 days ago", etc.)
-        let timeAgo = getTimeAgo(localTime);
+            function getTimeAgo(localTime) {
+                let now = new Date(); // Local time
+                let diff = now - localTime;
 
-        // Display the formatted date and time difference
-        element.innerText = `${formattedDate} (${timeAgo})`;
-    });
+                // Calculate time difference in milliseconds
+                let minutes = Math.floor(diff / (1000 * 60));
+                let hours = Math.floor(diff / (1000 * 60 * 60));
+                let days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                let weeks = Math.floor(days / 7);
+                let months = Math.floor(days / 30);
+                let years = Math.floor(days / 365);
 
-    function getTimeAgo(localTime) {
-        let now = new Date(); // Local time
-        let diff = now - localTime;
-
-        // Calculate time difference in milliseconds
-        let minutes = Math.floor(diff / (1000 * 60));
-        let hours = Math.floor(diff / (1000 * 60 * 60));
-        let days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        let weeks = Math.floor(days / 7);
-        let months = Math.floor(days / 30);
-        let years = Math.floor(days / 365);
-
-        if (years > 0) return `${years} year${years > 1 ? 's' : ''} ago`;
-        if (months > 0) return `${months} month${months > 1 ? 's' : ''} ago`;
-        if (weeks > 0) return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
-        if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
-        if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-        if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-        return "Just now";
-    }
-});
-</script>
+                if (years > 0) return `${years} year${years > 1 ? 's' : ''} ago`;
+                if (months > 0) return `${months} month${months > 1 ? 's' : ''} ago`;
+                if (weeks > 0) return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
+                if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+                if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+                if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+                return "Just now";
+            }
+        });
+    </script>
 
 
 
 </body>
+
 </html>

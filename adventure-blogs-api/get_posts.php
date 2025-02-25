@@ -33,7 +33,7 @@ try {
     foreach ($posts as $post) {
         $postTags = array_filter($tags, fn($t) => $t['post_id'] == $post['id']);
         $formattedTags = array_map(fn($t) => $t['name'], $postTags);
-        
+
         $result[] = [
             'id' => $post['id'],
             'title' => $post['title'],

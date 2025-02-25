@@ -61,14 +61,14 @@ if (!empty($_FILES['profile_photo']['name'])) {
 if ($newEmail !== $user['email']) {
     // Generate verification token
     $token = bin2hex(random_bytes(16));
-    
+
     // Store the pending email and token
     $stmt = $pdo->prepare("UPDATE users SET pending_email = ?, verification_token = ? WHERE id = ?");
     $stmt->execute([$newEmail, $token, $user['id']]);
 
     // Send verification email
     $verificationLink = "http://adventure-blog.ddns.net/verify_email_change.php?token=$token";
-    
+
     $mail = new PHPMailer(true);
     try {
         $mail->isSMTP();
@@ -78,7 +78,7 @@ if ($newEmail !== $user['email']) {
         $mail->Password = $emailConfig['smtp_password'];
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = $emailConfig['smtp_port'];
-        
+
         $mail->setFrom($emailConfig['from_email'], $emailConfig['from_name']);
         $mail->addAddress($newEmail);
         $mail->Subject = "Verify Your New Email Address";
@@ -110,4 +110,3 @@ if ($newEmail !== $user['email']) {
     header("Location: edit_user.php?success=Your profile has been updated.");
     exit();
 }
-?>

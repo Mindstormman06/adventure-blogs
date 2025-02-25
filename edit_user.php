@@ -8,7 +8,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");  
+    header("Location: login.php");
     exit();
 }
 
@@ -63,7 +63,7 @@ $posts = $stmt->fetchAll();
             <label for="instagram_link">Instagram Link:</label>
             <input type="url" name="instagram_link" id="instagram_link" value="<?php echo htmlspecialchars($user['instagram_link'] ?? ''); ?>">
         </div>
-        
+
         <!-- Update website link -->
         <div class="form-group">
             <label for="website_link">Website Link:</label>

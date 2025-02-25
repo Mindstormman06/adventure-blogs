@@ -23,4 +23,3 @@ if (isset($_GET['token'])) {
 } else {
     echo "<p>No verification token provided.</p>";
 }
-?>
