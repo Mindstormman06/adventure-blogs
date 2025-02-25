@@ -16,7 +16,7 @@ if (!isset($_SESSION["user_id"]) && !isset($_COOKIE["remember_token"])) {
         $_SESSION["username"] = $user["username"];
         $_SESSION["role"] = $user["role"];
     } else {
-        setcookie("remember_token", "", time() - 3600, "/", "");
+        setcookie("remember_token", "", time() - 3600, "/", "", true, true);
     }
 
     header("Location: login.php");

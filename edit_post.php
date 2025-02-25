@@ -71,13 +71,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
 
-    // Remove Location
-    if (isset($_POST["remove_location"])) {
-        $latitude = null;
-        $longitude = null;
-        $location_name = null;
-    }
-
     // Allowed File Data
     $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/webm', 'video/quicktime', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/x-m4a', 'audio/x-flac', 'audio/flac'];
     $maxFileSize = 100 * 1024 * 1024; // MB max per file
@@ -235,6 +228,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             display: none;
         }
 
+        /* Add this inside the <style> tag */
+        .leaflet-control-locate {
+            background-color: white;
+            background-image: url('https://cdn-icons-png.flaticon.com/512/684/684908.png');
+            background-size: 20px 20px;
+            background-repeat: no-repeat;
+            background-position: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            cursor: pointer;
+        }
+
+        .loading-indicator {
+            display: none;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
 </style>
 </head>
 <div class="container">
@@ -301,11 +318,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="hidden" name="longitude" id="longitude" value="<?php echo $post['longitude']; ?>">
         </div>
 
-        <!-- Remove Location Checkbox -->
-        <div class="form-group">
-            <input type="checkbox" name="remove_location" id="remove_location">
-            <label for="remove_location">Remove Location</label>
-        </div>
+        <div id="loading-indicator" class="loading-indicator">Fetching location...</div>
 
         <!-- Submit Button -->
         <button type="submit" class="btn btn-success" style="margin-top: 20px">Save Changes</button>
@@ -424,6 +437,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     var map = L.map('map').setView([37.7749, -122.4194], 3);
+    var greenIcon = new L.Icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
@@ -434,20 +455,80 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     var marker;
 
     if (latitude !== null && longitude !== null) {
-        marker = L.marker([latitude, longitude]).addTo(map);
+        marker = L.marker([latitude, longitude], { icon: greenIcon }).addTo(map);
         map.setView([latitude, longitude], 10);
+        marker.bindPopup('<button onclick="removeMarker(event)">Remove Location</button>').openPopup();
     }
 
     function onMapClick(e) {
         if (marker) {
             map.removeLayer(marker);
         }
-        marker = L.marker(e.latlng).addTo(map);
+        marker = L.marker(e.latlng, { icon: greenIcon }).addTo(map);
         document.getElementById("latitude").value = e.latlng.lat;
         document.getElementById("longitude").value = e.latlng.lng;
+        marker.bindPopup('<button onclick="removeMarker(event)">Remove Location</button>').openPopup();
     }
 
     map.on('click', onMapClick);
+
+    function removeMarker(event) {
+        event.preventDefault(); // Prevent form submission
+        if (marker) {
+            map.removeLayer(marker);
+            marker = null;
+            document.getElementById("latitude").value = '';
+            document.getElementById("longitude").value = '';
+        }
+    }
+
+    // Add this inside the <script> tag that initializes the map
+    var userMarker;
+    var cachedPosition = null;
+    var locateControl = L.control({position: 'topright'});
+    locateControl.onAdd = function(map) {
+        var div = L.DomUtil.create('div', 'leaflet-control-locate');
+        div.title = 'Locate Me';
+        L.DomEvent.on(div, 'click', function(e) {
+            L.DomEvent.stopPropagation(e); // Stop the click event from propagating to the map
+            var loadingIndicator = document.getElementById('loading-indicator');
+            loadingIndicator.style.display = 'block';
+            if (cachedPosition) {
+                var lat = cachedPosition.coords.latitude;
+                var lng = cachedPosition.coords.longitude;
+                if (userMarker) {
+                    userMarker.setLatLng([lat, lng]);
+                } else {
+                    userMarker = L.marker([lat, lng], { icon: greenIcon }).addTo(map);
+                    userMarker.bindPopup('You are here').openPopup();
+                }
+                map.setView([lat, lng], 13);
+                loadingIndicator.style.display = 'none';
+            } else if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    cachedPosition = position;
+                    var lat = position.coords.latitude;
+                    var lng = position.coords.longitude;
+                    if (userMarker) {
+                        userMarker.setLatLng([lat, lng]);
+                    } else {
+                        userMarker = L.marker([lat, lng], { icon: greenIcon }).addTo(map);
+                        userMarker.bindPopup('You are here').openPopup();
+                    }
+                    map.setView([lat, lng], 13);
+                    loadingIndicator.style.display = 'none';
+                }, function(error) {
+                    alert('Error getting location: ' + error.message);
+                    loadingIndicator.style.display = 'none';
+                });
+            } else {
+                alert('Geolocation is not supported by this browser.');
+                loadingIndicator.style.display = 'none';
+            }
+        });
+        return div;
+    };
+    locateControl.addTo(map);
 </script>
 
 <script>

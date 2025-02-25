@@ -12,24 +12,16 @@ if (isset($_SESSION['user_id'])) {
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     $isAdmin = ($user['role'] === 'admin');
 }
-?>
 
-<?php
+$url = $_SERVER['PHP_SELF'];
+$isFlare = (stripos($url, 'flare.php') !== false);
 
-    $backgrounds = scandir('backgrounds/'); // get all files into an array
-    $backgrounds = array_diff($backgrounds, array('.', '..')); // remove . and .. from array
-    // echo '<pre>'; print_r($backgrounds); echo '</pre>';
+$backgrounds = scandir('backgrounds/'); // get all files into an array
+$backgrounds = array_diff($backgrounds, array('.', '..')); // remove . and .. from array
 
-
-
-
-    // Randomly choose a background image
-    $i = rand(2, count($backgrounds)-1); // generate random number size of the array
-    $selectedBg = "$backgrounds[$i]"; // set variable equal to which random filename was chosen
-    
-    // Testing Fields
-    // $selectedBg = 'bg-01.jpg';
-    // echo $selectedBg;
+// Randomly choose a background image
+$i = rand(2, count($backgrounds)-1); // generate random number size of the array
+$selectedBg = "$backgrounds[$i]"; // set variable equal to which random filename was chosen
 ?>
 
 <!DOCTYPE html>
@@ -39,7 +31,7 @@ if (isset($_SESSION['user_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Adventure Blog</title>
     <!-- Favicon -->
-    <link rel="icon" href="http://adventure-blog.ddns.net/favicon.ico?v=2" />
+    <link rel="icon" href="https://adventure-blog.ddns.net/favicon.ico?v=2" />
 
     <!-- Tailwind CSS -->
     <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
@@ -59,32 +51,35 @@ if (isset($_SESSION['user_id'])) {
 
     <!-- Background Image -->
     <style type="text/css">
-        
-        body{
-        background: url(backgrounds/<?php echo $selectedBg; ?>);
-        background-attachment: fixed;
-        background-size: cover;
-        background-repeat: no-repeat;
+        body {
+            background: url(backgrounds/<?php echo $selectedBg; ?>);
+            background-attachment: fixed;
+            background-size: cover;
+            background-repeat: no-repeat;
         }
-        
     </style>
 </head>
 
 <body>
     <header>
-        
         <!-- Navigation bar -->
         <div class="nav-container">
             <nav>
-                <a href="index.php">Home</a>
-                <a href="view_all.php">View All</a>
-                <a href="map.php">Map</a>
-                <?php if (isset($_SESSION['user_id'])): ?>
-                    <a href="dashboard.php">Create Post</a>
-                    <a href="logout.php">Logout</a>
-                <?php else: ?>
-                    <a href="login.php">Login</a>
-                    <a href="register.php">Register</a>
+                <?php if ($isFlare !== true): ?>
+                    <a href="index.php">Home</a>
+                    <a href="view_all.php">View All</a>
+                    <a href="map.php">Map</a>
+                    <?php if (isset($_SESSION['user_id'])): ?>
+                        <a href="dashboard.php">Create Post</a>
+                        <a href="logout.php">Logout</a>
+                        <a href="flare.php">🔥 Flare (Beta) 🔥</a>
+                    <?php else: ?>
+                        <a href="login.php">Login</a>
+                        <a href="register.php">Register</a>
+                    <?php endif; ?>
+                <?php endif; ?>
+                <?php if ($isFlare === true): ?>
+                    <a href="index.php">&larr; Back to Adventure Blogs</a>
                 <?php endif; ?>
                 <!-- User Info -->
                 <?php if (isset($_SESSION['user_id'])): ?>
@@ -94,8 +89,7 @@ if (isset($_SESSION['user_id'])) {
                     </div>
                 <?php endif; ?>
             </nav>
-            
         </div>
-
     </header>
 </body>
+</html>

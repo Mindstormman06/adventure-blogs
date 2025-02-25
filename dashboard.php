@@ -26,7 +26,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $location_name = null;
     }
 
-
     // Validate title and content
     if (empty($title)) {
         echo "<p>Error: Title must be filled in.</p>";
@@ -139,7 +138,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
 
-
         echo "<p>Post uploaded successfully! <a href='index.php'>View posts</a></p>";
         header("Location: index.php");
         exit;
@@ -170,7 +168,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             opacity: 0.5; /* Adjust opacity for better visibility */
             padding-left: 10px; /* Ensure placeholder is well-aligned */
         }
-</style>
+
+        /* Add this inside the <style> tag */
+        .leaflet-control-locate {
+            background-color: white;
+            background-image: url('https://cdn-icons-png.flaticon.com/512/684/684908.png');
+            background-size: 20px 20px;
+            background-repeat: no-repeat;
+            background-position: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            cursor: pointer;
+        }
+
+        .loading-indicator {
+            display: none;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+    </style>
 </head>
 <div class="container">
     <h2>Create a New Post</h2>
@@ -218,6 +241,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="hidden" name="latitude" id="latitude">
             <input type="hidden" name="longitude" id="longitude">
         </div>
+
+        <div id="loading-indicator" class="loading-indicator">Fetching location...</div>
 
         <!-- Submit Button -->
         <button type="submit" class="btn btn-success" style="margin-top: 20px">Post</button>
@@ -330,16 +355,73 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     var marker;
 
+    var greenIcon = new L.Icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
     function onMapClick(e) {
         if (marker) {
             map.removeLayer(marker);
         }
-        marker = L.marker(e.latlng).addTo(map);
+        marker = L.marker(e.latlng, { icon: greenIcon }).addTo(map);
         document.getElementById("latitude").value = e.latlng.lat;
         document.getElementById("longitude").value = e.latlng.lng;
     }
 
     map.on('click', onMapClick);
+
+    // Add this inside the <script> tag that initializes the map
+    var userMarker;
+    var cachedPosition = null;
+    var locateControl = L.control({position: 'topright'});
+    locateControl.onAdd = function(map) {
+        var div = L.DomUtil.create('div', 'leaflet-control-locate');
+        div.title = 'Locate Me';
+        L.DomEvent.on(div, 'click', function(e) {
+            L.DomEvent.stopPropagation(e); // Stop the click event from propagating to the map
+            var loadingIndicator = document.getElementById('loading-indicator');
+            loadingIndicator.style.display = 'block';
+            if (cachedPosition) {
+                var lat = cachedPosition.coords.latitude;
+                var lng = cachedPosition.coords.longitude;
+                if (userMarker) {
+                    userMarker.setLatLng([lat, lng]);
+                } else {
+                    userMarker = L.marker([lat, lng], { icon: greenIcon }).addTo(map);
+                    userMarker.bindPopup('You are here').openPopup();
+                }
+                map.setView([lat, lng], 13);
+                loadingIndicator.style.display = 'none';
+            } else if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    cachedPosition = position;
+                    var lat = position.coords.latitude;
+                    var lng = position.coords.longitude;
+                    if (userMarker) {
+                        userMarker.setLatLng([lat, lng]);
+                    } else {
+                        userMarker = L.marker([lat, lng], { icon: greenIcon }).addTo(map);
+                        userMarker.bindPopup('You are here').openPopup();
+                    }
+                    map.setView([lat, lng], 13);
+                    loadingIndicator.style.display = 'none';
+                }, function(error) {
+                    alert('Error getting location: ' + error.message);
+                    loadingIndicator.style.display = 'none';
+                });
+            } else {
+                alert('Geolocation is not supported by this browser.');
+                loadingIndicator.style.display = 'none';
+            }
+        });
+        return div;
+    };
+    locateControl.addTo(map);
 </script>
 
 <script>

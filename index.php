@@ -250,10 +250,10 @@ document.addEventListener("DOMContentLoaded", function() {
         // Step 2: Convert UTC → Local Time (Based on viewer's timezone)
         let localTime = new Date(dateObjUTC.getTime() - dateObjUTC.getTimezoneOffset() * 60000);
 
-        console.log("Stored PST Time:", pstTime);
-        console.log("Converted UTC Time:", dateObjUTC.toISOString());
-        console.log("Viewer's Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
-        console.log("Local Time:", localTime.toLocaleString());
+        // console.log("Stored PST Time:", pstTime);
+        // console.log("Converted UTC Time:", dateObjUTC.toISOString());
+        // console.log("Viewer's Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+        // console.log("Local Time:", localTime.toLocaleString());
 
         // Format the local date as YYYY/MM/DD
         let formattedDate = localTime.getFullYear() + '/' + 

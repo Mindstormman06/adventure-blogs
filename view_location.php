@@ -35,12 +35,20 @@ $location_name = htmlspecialchars($_GET['name']);
     <!-- Load Map -->
     <script>
         var map = L.map('map').setView([<?php echo $latitude; ?>, <?php echo $longitude; ?>], 12);
+        var greenIcon = new L.Icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        L.marker([<?php echo $latitude; ?>, <?php echo $longitude; ?>]).addTo(map)
+        L.marker([<?php echo $latitude; ?>, <?php echo $longitude; ?>], { icon: greenIcon }).addTo(map)
             .bindPopup("<?php echo $location_name ?>").openPopup();
     </script>
 
