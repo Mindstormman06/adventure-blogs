@@ -22,6 +22,9 @@ $backgrounds = array_diff($backgrounds, array('.', '..')); // remove . and .. fr
 // Randomly choose a background image
 $i = rand(2, count($backgrounds) - 1); // generate random number size of the array
 $selectedBg = "$backgrounds[$i]"; // set variable equal to which random filename was chosen
+
+$activeFile = substr($url, 0, -4);
+$activeFile = substr($activeFile, 1);
 ?>
 
 <!DOCTYPE html>
@@ -58,39 +61,49 @@ $selectedBg = "$backgrounds[$i]"; // set variable equal to which random filename
             background-size: cover;
             background-repeat: no-repeat;
         }
+
+        .<?php echo $activeFile; ?> {
+            color: aquamarine;
+        }
     </style>
 </head>
 
 <body>
+
     <header>
+        <h1>Adventure Blogs</h1>
         <!-- Navigation bar -->
         <div class="nav-container">
             <nav>
                 <?php if ($isFlare !== true): ?>
-                    <a href="index.php">Home</a>
-                    <a href="view_all.php">View All</a>
-                    <a href="map.php">Map</a>
+                    <a href="index.php" class="index">Home</a>
+                    <a href="view_all.php" class="view_all">View All</a>
+                    <a href="map.php" class="map">Map</a>
                     <?php if (isset($_SESSION['user_id'])): ?>
-                        <a href="dashboard.php">Create Post</a>
-                        <a href="logout.php">Logout</a>
+                        <a href="dashboard.php" class="dashboard">Create Post</a>
                         <a href="flare.php">🔥 Flare (Beta) 🔥</a>
-                    <?php else: ?>
-                        <a href="login.php">Login</a>
-                        <a href="register.php">Register</a>
+                        <a href="logout.php">Sign Out</a>
+
                     <?php endif; ?>
+
                 <?php endif; ?>
                 <?php if ($isFlare === true): ?>
                     <a href="index.php">&larr; Back to Adventure Blogs</a>
                 <?php endif; ?>
                 <!-- User Info -->
-                <?php if (isset($_SESSION['user_id'])): ?>
-                    <div class="user-info">
+                <div class="user-info">
+
+                    <?php if (isset($_SESSION['user_id'])): ?>
                         <img src="<?php echo !empty($user['profile_photo']) ? htmlspecialchars($user['profile_photo']) : 'profile_photos/default_profile.png'; ?>" alt="Profile Photo" class="profile-photo-header">
-                        <a href="<?php echo 'user_profile.php?username=' . $user['username'] ?>" class="username"><?php echo htmlspecialchars($user['username']); ?> <?php if ($user['role'] == 'admin') {
-                                                                                                                                                                        echo '(' . htmlspecialchars($user['role']) . ')';
-                                                                                                                                                                    } ?></a>
-                    </div>
-                <?php endif; ?>
+                        <a id="user_profile" href="<?php echo 'user_profile.php?username=' . $user['username'] ?>" class="username"><?php echo htmlspecialchars($user['username']); ?> <?php if ($user['role'] == 'admin') {
+                                                                                                                                                                                            echo '(' . htmlspecialchars($user['role']) . ')';
+                                                                                                                                                                                        } ?></a>
+                    <?php else: ?>
+                        <a href="login.php" class="login">Sign In</a>
+                        <a href="register.php" class="register">Register</a>
+                    <?php endif; ?>
+
+                </div>
             </nav>
         </div>
     </header>

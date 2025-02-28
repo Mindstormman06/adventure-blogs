@@ -52,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
 <div class="container">
-    <h2>Login</h2>
+    <h2>Adventure Blogs</h2>
     <form method="post">
 
         <!-- Username field -->
@@ -69,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </label>
         <br>
 
-        <button type="submit" class="btn btn-primary">Login</button>
+        <button type="submit" class="btn btn-primary">Sign In</button>
     </form>
 </div>
 

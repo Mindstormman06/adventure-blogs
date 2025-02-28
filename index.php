@@ -87,6 +87,7 @@ function formatDate($datetime, $timezone = 'UTC')
 }
 ?>
 
+
 <body>
     <div class="container">
         <h1>Recent Posts</h1>
@@ -212,27 +213,28 @@ function formatDate($datetime, $timezone = 'UTC')
                     <?php endif; ?>
                 </div>
 
-                <!-- View Comments Button -->
-                <a class="" href="post.php?id=<?php echo $post['id']; ?>">
-                    <button type="button" class="btn btn-primary" style="margin-top: 10px">View Comments</button>
-                </a>
+                <div class="flex gap-2 mt-2 md:mt-0">
 
-                <!-- Post Controls -->
-                <?php if (isset($_SESSION['user_id']) && $user && ($_SESSION['username'] == $post['username'] || $user['role'] == 'admin')): ?>
-                    <div class="flex gap-2 mt-2 md:mt-0">
+                    <!-- View Comments Button -->
+                    <a class="" href="post.php?id=<?php echo $post['id']; ?>">
+                        <button type="button" class="btn btn-primary">💬</button>
+                    </a>
+
+                    <!-- Post Controls -->
+                    <?php if (isset($_SESSION['user_id']) && $user && ($_SESSION['username'] == $post['username'] || $user['role'] == 'admin')): ?>
                         <a href="edit_post.php?id=<?php echo $post['id']; ?>">
                             <button type="button" class="btn btn-warning">
-                                Edit
+                                ✏️
                             </button>
                         </a>
 
                         <a href="delete_post.php?id=<?php echo $post['id']; ?>" onclick="return confirm('Are you sure you want to delete this post?');">
                             <button type="button" class="btn btn-danger">
-                                Delete
+                                🗑️
                             </button>
                         </a>
-                    </div>
-                <?php endif; ?>
+                    <?php endif; ?>
+                </div>
             </div>
         <?php endforeach; ?>
     </div>

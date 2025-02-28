@@ -170,9 +170,9 @@ $postContent = $Parsedown->text($post['content']); // Convert Markdown to HTML
 
     <?php if (isset($_SESSION['user_id']) && $user && ($_SESSION['username'] == $post['username'] || $user['role'] == 'admin')): ?>
         <p class="post_controls">
-            <a class="btn btn-warning" href="edit_post.php?id=<?php echo $post['id']; ?>">Edit</a>
+            <a class="btn btn-warning" href="edit_post.php?id=<?php echo $post['id']; ?>">✏️</a>
             <a class="btn btn-danger" href="delete_post.php?id=<?php echo $post['id']; ?>"
-                onclick="return confirm('Are you sure you want to delete this post?');">Delete</a>
+                onclick="return confirm('Are you sure you want to delete this post?');">🗑️</a>
         </p>
     <?php endif; ?>
 
@@ -211,11 +211,11 @@ $postContent = $Parsedown->text($post['content']); // Convert Markdown to HTML
                     <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $comment['user_id']): ?>
                         <button onclick="editComment(<?php echo $comment['id']; ?>)"
                             class="text-black bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-4 focus:ring-yellow-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:focus:ring-yellow-900">
-                            Edit
+                            ✏️
                         </button>
                         <button onclick="deleteComment(<?php echo $comment['id']; ?>)"
                             class="text-white bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
-                            Delete
+                            🗑️
                         </button>
                     <?php endif; ?>
 
