@@ -352,19 +352,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!-- File Validation Script -->
 <script>
     document.getElementById("file_input").addEventListener("change", function(event) {
-        var fileErrorsDiv = document.getElementById("fileErrors");
-        var filePreviewDiv = document.getElementById("filePreview");
+        let fileErrorsDiv = document.getElementById("fileErrors");
+        let filePreviewDiv = document.getElementById("filePreview");
         fileErrorsDiv.innerHTML = ""; // Clear previous errors
         filePreviewDiv.innerHTML = ""; // Clear previous previews
 
-        var files = event.target.files;
-        var allowedTypes = [
+        let files = event.target.files;
+        let allowedTypes = [
             "image/jpeg", "image/png", "image/gif",
             "video/mp4", "video/webm", "video/quicktime",
             "audio/mpeg", "audio/wav", "audio/ogg", "audio/mp4", "audio/x-m4a", "audio/x-flac"
         ];
-        var maxFileSize = 100 * 1024 * 1024; // MB per file
-        var maxFiles = 10;
+        let maxFileSize = 100 * 1024 * 1024; // MB per file
+        let maxFiles = 10;
 
         if (files.length > maxFiles) {
             fileErrorsDiv.innerHTML = `<p>Error: You can upload a maximum of ${maxFiles} files.</p>`;
@@ -372,8 +372,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             return;
         }
 
-        for (var i = 0; i < files.length; i++) {
-            var file = files[i];
+        for (let i = 0; i < files.length; i++) {
+            let file = files[i];
 
             // Check file type
             if (!allowedTypes.includes(file.type)) {
@@ -391,13 +391,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // OPTIONAL: Show image/video previews
             if (file.type.startsWith("image/")) {
-                var img = document.createElement("img");
+                let img = document.createElement("img");
                 img.src = URL.createObjectURL(file);
                 img.style.maxWidth = "100px";
                 img.style.margin = "5px";
                 filePreviewDiv.appendChild(img);
             } else if (file.type.startsWith("video/")) {
-                var vid = document.createElement("video");
+                let vid = document.createElement("video");
                 vid.src = URL.createObjectURL(file);
                 vid.controls = true;
                 vid.style.maxWidth = "150px";
@@ -409,15 +409,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Form submit validation
     document.querySelector("form").addEventListener("submit", function(event) {
-        var fileInput = document.getElementById("file_input");
-        var existingMedia = document.querySelectorAll(".media-container .remove-checkbox:not(:checked)").length;
-        var files = fileInput.files;
-        var maxFiles = 10;
+        let fileInput = document.getElementById("file_input");
+        let existingMedia = document.querySelectorAll(".media-container .remove-checkbox:not(:checked)").length;
+        let files = fileInput.files;
+        let maxFiles = 10;
 
         // Check if the total number of files exceeds the maximum allowed
         if (files.length + existingMedia > maxFiles) {
             event.preventDefault(); // Prevent form submission
-            var fileErrorsDiv = document.getElementById("fileErrors");
+            let fileErrorsDiv = document.getElementById("fileErrors");
             fileErrorsDiv.innerHTML = `<p>Error: You can upload a maximum of ${maxFiles} files in total.</p>`;
         }
     });
@@ -428,14 +428,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <script>
     // Real-time content length display
     document.getElementById("content").addEventListener("input", function() {
-        var charCount = this.value.length;
+        let charCount = this.value.length;
         document.getElementById("content-char-count").textContent = charCount + "/1000 characters used";
     });
 
     function validatePost() {
-        var title = document.getElementById("title").value;
-        var content = document.getElementById("content").value;
-        var fileErrorsDiv = document.getElementById("fileErrors");
+        let title = document.getElementById("title").value;
+        let content = document.getElementById("content").value;
+        let fileErrorsDiv = document.getElementById("fileErrors");
 
         if (title.trim() === "") {
             alert("Title must be filled in.");
@@ -455,8 +455,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         return true;
     }
 
-    var map = L.map('map').setView([37.7749, -122.4194], 3);
-    var greenIcon = new L.Icon({
+    let map = L.map('map').setView([37.7749, -122.4194], 3);
+    let greenIcon = new L.Icon({
         iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
         iconSize: [25, 41],
@@ -469,9 +469,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    var latitude = <?php echo !empty($post['latitude']) ? $post['latitude'] : 'null'; ?>;
-    var longitude = <?php echo !empty($post['longitude']) ? $post['longitude'] : 'null'; ?>;
-    var marker;
+    let latitude = <?php echo !empty($post['latitude']) ? $post['latitude'] : 'null'; ?>;
+    let longitude = <?php echo !empty($post['longitude']) ? $post['longitude'] : 'null'; ?>;
+    let marker;
 
     if (latitude !== null && longitude !== null) {
         marker = L.marker([latitude, longitude], {
@@ -506,21 +506,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Add this inside the <script> tag that initializes the map
-    var userMarker;
-    var cachedPosition = null;
-    var locateControl = L.control({
+    let userMarker;
+    let cachedPosition = null;
+    let locateControl = L.control({
         position: 'topright'
     });
     locateControl.onAdd = function(map) {
-        var div = L.DomUtil.create('div', 'leaflet-control-locate');
+        let div = L.DomUtil.create('div', 'leaflet-control-locate');
         div.title = 'Locate Me';
         L.DomEvent.on(div, 'click', function(e) {
             L.DomEvent.stopPropagation(e); // Stop the click event from propagating to the map
-            var loadingIndicator = document.getElementById('loading-indicator');
+            let loadingIndicator = document.getElementById('loading-indicator');
             loadingIndicator.style.display = 'block';
             if (cachedPosition) {
-                var lat = cachedPosition.coords.latitude;
-                var lng = cachedPosition.coords.longitude;
+                let lat = cachedPosition.coords.latitude;
+                let lng = cachedPosition.coords.longitude;
                 if (userMarker) {
                     userMarker.setLatLng([lat, lng]);
                 } else {
@@ -534,8 +534,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             } else if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(position) {
                     cachedPosition = position;
-                    var lat = position.coords.latitude;
-                    var lng = position.coords.longitude;
+                    let lat = position.coords.latitude;
+                    let lng = position.coords.longitude;
                     if (userMarker) {
                         userMarker.setLatLng([lat, lng]);
                     } else {
@@ -562,24 +562,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        var input = document.querySelector('input[name=tags]');
-        var removedTagsInput = document.createElement('input');
+        let input = document.querySelector('input[name=tags]');
+        let removedTagsInput = document.createElement('input');
         removedTagsInput.type = 'hidden';
         removedTagsInput.name = 'removed_tags';
         document.querySelector('form').appendChild(removedTagsInput);
 
-        var tagify = new Tagify(input);
+        let tagify = new Tagify(input);
 
         tagify.on('remove', function(e) {
-            var removedTag = e.detail.data.value;
-            var removedTags = removedTagsInput.value ? removedTagsInput.value.split(',') : [];
+            let removedTag = e.detail.data.value;
+            let removedTags = removedTagsInput.value ? removedTagsInput.value.split(',') : [];
             removedTags.push(removedTag);
             removedTagsInput.value = removedTags.join(',');
         });
 
         // Convert Tagify output to a simple comma-separated string before submitting the form
         document.querySelector('form').addEventListener('submit', function() {
-            var tagsArray = tagify.value.map(tag => tag.value);
+            let tagsArray = tagify.value.map(tag => tag.value);
             input.value = tagsArray.join(',');
         });
     });
@@ -587,9 +587,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <script>
     function removeMedia(button) {
         // Get the parent container
-        var container = button.parentElement;
+        let container = button.parentElement;
         // Find the hidden checkbox
-        var checkbox = container.querySelector('.remove-checkbox');
+        let checkbox = container.querySelector('.remove-checkbox');
         // Check the checkbox to mark for removal
         checkbox.checked = true;
         // Hide the container visually
@@ -599,8 +599,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        var content = document.getElementById("content");
-        var charCount = content.value.length;
+        let content = document.getElementById("content");
+        let charCount = content.value.length;
         document.getElementById("content-char-count").textContent = charCount + "/1000 characters used";
     });
 </script>

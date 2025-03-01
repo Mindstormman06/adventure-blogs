@@ -36,8 +36,8 @@ $location_name = htmlspecialchars($_GET['name']);
 
     <!-- Load Map -->
     <script>
-        var map = L.map('map').setView([<?php echo $latitude; ?>, <?php echo $longitude; ?>], 12);
-        var greenIcon = new L.Icon({
+        let map = L.map('map').setView([<?php echo $latitude; ?>, <?php echo $longitude; ?>], 12);
+        let greenIcon = new L.Icon({
             iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
             shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
             iconSize: [25, 41],

@@ -122,13 +122,13 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
 
     <!-- Load Map -->
     <script>
-        var map = L.map('map').setView([49.214009, -123.070856], 5);
-        var posts = <?php echo json_encode($posts); ?>;
-        var flare_posts = <?php echo json_encode($flare_posts); ?>;
-        var markers = [];
-        var flareMarkers = [];
+        let map = L.map('map').setView([49.214009, -123.070856], 5);
+        let posts = <?php echo json_encode($posts); ?>;
+        let flare_posts = <?php echo json_encode($flare_posts); ?>;
+        let markers = [];
+        let flareMarkers = [];
 
-        var greenIcon = new L.Icon({
+        let greenIcon = new L.Icon({
             iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
             shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
             iconSize: [25, 41],
@@ -137,7 +137,7 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
             shadowSize: [41, 41]
         });
 
-        var redIcon = new L.Icon({
+        let redIcon = new L.Icon({
             iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
             shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
             iconSize: [25, 41],
@@ -153,7 +153,7 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
         // Add markers for each post
         posts.forEach(post => {
             if (post.latitude && post.longitude && !isNaN(post.latitude) && !isNaN(post.longitude)) {
-                var marker = L.marker([parseFloat(post.latitude), parseFloat(post.longitude)], {
+                let marker = L.marker([parseFloat(post.latitude), parseFloat(post.longitude)], {
                         icon: greenIcon
                     }).addTo(map)
                     .bindPopup(`<div>
@@ -170,7 +170,7 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
         // Add markers for each flare post
         flare_posts.forEach(flare_post => {
             if (flare_post.latitude && flare_post.longitude && !isNaN(flare_post.latitude) && !isNaN(flare_post.longitude)) {
-                var flareMarker = L.marker([parseFloat(flare_post.latitude), parseFloat(flare_post.longitude)], {
+                let flareMarker = L.marker([parseFloat(flare_post.latitude), parseFloat(flare_post.longitude)], {
                         icon: redIcon
                     }).addTo(map)
                     .bindPopup(`<div>
@@ -185,7 +185,7 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
 
         // Function to open Google Maps with directions
         function openDirections(lat, lng) {
-            var url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+            let url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
             window.open(url, '_blank');
         }
 
@@ -206,21 +206,21 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
         });
 
         // Add locate button
-        var userMarker;
-        var cachedPosition = null;
-        var locateControl = L.control({
+        let userMarker;
+        let cachedPosition = null;
+        let locateControl = L.control({
             position: 'topright'
         });
         locateControl.onAdd = function(map) {
-            var div = L.DomUtil.create('div', 'leaflet-control-locate');
+            let div = L.DomUtil.create('div', 'leaflet-control-locate');
             div.title = 'Locate Me';
             L.DomEvent.on(div, 'click', function(e) {
                 L.DomEvent.stopPropagation(e); // Stop the click event from propagating to the map
-                var loadingIndicator = document.getElementById('loading-indicator');
+                let loadingIndicator = document.getElementById('loading-indicator');
                 loadingIndicator.style.display = 'block';
                 if (cachedPosition) {
-                    var lat = cachedPosition.coords.latitude;
-                    var lng = cachedPosition.coords.longitude;
+                    let lat = cachedPosition.coords.latitude;
+                    let lng = cachedPosition.coords.longitude;
                     if (userMarker) {
                         userMarker.setLatLng([lat, lng]);
                     } else {
@@ -234,8 +234,8 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
                 } else if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(function(position) {
                         cachedPosition = position;
-                        var lat = position.coords.latitude;
-                        var lng = position.coords.longitude;
+                        let lat = position.coords.latitude;
+                        let lng = position.coords.longitude;
                         if (userMarker) {
                             userMarker.setLatLng([lat, lng]);
                         } else {

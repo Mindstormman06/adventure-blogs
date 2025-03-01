@@ -122,8 +122,8 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </style>
     <script>
         function initMap() {
-            var map = L.map('map').setView([49.214009, -123.070856], 5);
-            var redIcon = new L.Icon({
+            let map = L.map('map').setView([49.214009, -123.070856], 5);
+            let redIcon = new L.Icon({
                 iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
                 shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
                 iconSize: [25, 41],
@@ -137,7 +137,7 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }).addTo(map);
 
             map.on('click', function(e) {
-                var popupContent = `
+                let popupContent = `
                     <form method="post" enctype="multipart/form-data" class="container" style="width: 15vw;">
                         <h2>Create Flare</h2>
                         <label for="title">Title:</label>
@@ -158,14 +158,14 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
             });
 
             // Add markers for each post
-            var posts = <?php echo json_encode($posts); ?>;
-            var currentUser = '<?php echo $_SESSION['username']; ?>';
-            var isAdmin = <?php echo json_encode($isAdmin); ?>;
+            let posts = <?php echo json_encode($posts); ?>;
+            let currentUser = '<?php echo $_SESSION['username']; ?>';
+            let isAdmin = <?php echo json_encode($isAdmin); ?>;
             posts.forEach(function(post) {
-                var marker = L.marker([post.latitude, post.longitude], {
+                let marker = L.marker([post.latitude, post.longitude], {
                     icon: redIcon
                 }).addTo(map);
-                var popupContent = `
+                let popupContent = `
                     <h3>${post.title}</h3>
                     <p>by ${post.user}</p>
                     <p>${post.description}</p>
@@ -177,21 +177,21 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
             });
 
             // Add locate button
-            var userMarker;
-            var cachedPosition = null;
-            var locateControl = L.control({
+            let userMarker;
+            let cachedPosition = null;
+            let locateControl = L.control({
                 position: 'topright'
             });
             locateControl.onAdd = function(map) {
-                var div = L.DomUtil.create('div', 'leaflet-control-locate');
+                let div = L.DomUtil.create('div', 'leaflet-control-locate');
                 div.title = 'Locate Me';
                 L.DomEvent.on(div, 'click', function(e) {
                     L.DomEvent.stopPropagation(e); // Stop the click event from propagating to the map
-                    var loadingIndicator = document.getElementById('loading-indicator');
+                    let loadingIndicator = document.getElementById('loading-indicator');
                     loadingIndicator.style.display = 'block';
                     if (cachedPosition) {
-                        var lat = cachedPosition.coords.latitude;
-                        var lng = cachedPosition.coords.longitude;
+                        let lat = cachedPosition.coords.latitude;
+                        let lng = cachedPosition.coords.longitude;
                         if (userMarker) {
                             userMarker.setLatLng([lat, lng]);
                         } else {
@@ -205,8 +205,8 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     } else if (navigator.geolocation) {
                         navigator.geolocation.getCurrentPosition(function(position) {
                             cachedPosition = position;
-                            var lat = position.coords.latitude;
-                            var lng = position.coords.longitude;
+                            let lat = position.coords.latitude;
+                            let lng = position.coords.longitude;
                             if (userMarker) {
                                 userMarker.setLatLng([lat, lng]);
                             } else {
@@ -233,7 +233,7 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Function to open Google Maps with directions
         function openDirections(lat, lng) {
-            var url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+            let url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
             window.open(url, '_blank');
         }
 
