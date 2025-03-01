@@ -2,6 +2,13 @@
 include 'header.php';
 include 'config.php';
 
+require 'vendor\erusev\parsedown\Parsedown.php'; // Include Parsedown for Markdown support
+require_once 'vendor/autoload.php'; // Include Composer autoload
+
+// Configure HTMLPurifier
+$config = HTMLPurifier_Config::createDefault();
+$purifier = new HTMLPurifier($config);
+
 // Fetch all posts
 $stmt = $pdo->query("
     SELECT posts.id, posts.title, posts.content, posts.image_path, users.username, posts.created_at, users.profile_photo, location_name, latitude, longitude
@@ -150,9 +157,9 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
                         icon: greenIcon
                     }).addTo(map)
                     .bindPopup(`<div>
-                                    <h4>${post.title}</h4>
-                                    <p>By: ${post.username}</p>
-                                    <p>${post.content.slice(0, 100)}...</p>
+                                    <h4>${htmlspecialchars(post.title)}</h4>
+                                    <p>By: ${htmlspecialchars(post.username)}</p>
+                                    <p>${htmlspecialchars(post.content.slice(0, 100))}...</p>
                                     <a href="post.php?id=${post.id}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" style="text-decoration: none">View Post</a>
                                     <button onclick="openDirections(${post.latitude}, ${post.longitude})" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-2">Directions</button>
                                 </div>`);
@@ -167,9 +174,9 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
                         icon: redIcon
                     }).addTo(map)
                     .bindPopup(`<div>
-                                    <h4>${flare_post.title}</h4>
-                                    <p>By: ${flare_post.user}</p>
-                                    <p>${flare_post.description.slice(0, 100)}...</p>
+                                    <h4>${htmlspecialchars(flare_post.title)}</h4>
+                                    <p>By: ${htmlspecialchars(flare_post.user)}</p>
+                                    <p>${htmlspecialchars(flare_post.description.slice(0, 100))}...</p>
                                     <button onclick="openDirections(${flare_post.latitude}, ${flare_post.longitude})" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-2">Directions</button>
                                 </div>`);
                 flareMarkers.push(flareMarker);
@@ -251,6 +258,15 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
             return div;
         };
         locateControl.addTo(map);
+
+        // Function to escape HTML characters
+        function htmlspecialchars(str) {
+            return str.replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
     </script>
 
 </body>

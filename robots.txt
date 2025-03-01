@@ -1,0 +1,3 @@
+User-agent: *
+Disallow:
+Sitemap: https://adventure-blog.ddns.net/sitemap.xml

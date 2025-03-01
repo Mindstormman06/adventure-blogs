@@ -2,6 +2,11 @@
 include 'auth.php';
 include 'config.php';
 include 'header.php';
+require_once 'vendor/autoload.php'; // Include Composer autoload
+
+// Configure HTMLPurifier
+$config = HTMLPurifier_Config::createDefault();
+$purifier = new HTMLPurifier($config);
 
 // Check if post exists
 if (!isset($_GET['id'])) {
@@ -65,12 +70,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $latitude = !empty($_POST["latitude"]) ? $_POST["latitude"] : null;
     $longitude = !empty($_POST["longitude"]) ? $_POST["longitude"] : null;
     $tagsInput = trim($_POST["tags"]);
+    $tagsInput = $purifier->purify($tagsInput); // Sanitize tags input
+
     if (isset($latitude) && isset($longitude)) {
         $location_name = !empty($_POST['location_name']) ? $_POST['location_name'] : "Tagged Location";
     } else {
         $location_name = null;
     }
-
 
     // Allowed File Data
     $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/webm', 'video/quicktime', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/x-m4a', 'audio/x-flac', 'audio/flac'];
@@ -122,6 +128,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $pdo->prepare("DELETE FROM post_tags WHERE post_id = ?")->execute([$post_id]);
     if (!empty($tagsInput)) {
         $tagsArray = array_map('trim', explode(',', $tagsInput));
+        $tagsArray = array_unique($tagsArray); // Ensure tags are unique
         foreach ($tagsArray as $tag) {
             $stmt = $pdo->prepare("SELECT id FROM tags WHERE name = ?");
             $stmt->execute([$tag]);
@@ -268,7 +275,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <div class="container">
     <h2>Edit Post</h2>
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" onsubmit="return validatePost()">
 
         <!-- Title -->
         <div class="form-group">
@@ -279,7 +286,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <!-- Content -->
         <div class="form-group">
             <label>Content:</label>
-            <textarea name="content" id="content" rows="5"><?php echo htmlspecialchars($post['content']); ?></textarea>
+            <textarea name="content" id="content" rows="5" maxlength="1000"><?php echo htmlspecialchars($post['content']); ?></textarea>
             <small id="content-char-count">0/1000 characters used</small>
         </div>
 
@@ -588,6 +595,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Hide the container visually
         container.style.display = 'none';
     }
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var content = document.getElementById("content");
+        var charCount = content.value.length;
+        document.getElementById("content-char-count").textContent = charCount + "/1000 characters used";
+    });
 </script>
 
 <?php include 'footer.php'; ?>

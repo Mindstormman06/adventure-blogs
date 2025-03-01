@@ -1,13 +1,17 @@
-<?php include 'header.php'; ?>
-<?php include 'config.php'; ?>
 <?php
 // Start Session if it's not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 // Requirements
+include 'header.php';
 require 'config.php';
 require 'vendor\erusev\parsedown\Parsedown.php'; // Include Parsedown for Markdown support
+require_once 'vendor/autoload.php'; // Include Composer autoload
+
+// Configure HTMLPurifier
+$config = HTMLPurifier_Config::createDefault();
+$purifier = new HTMLPurifier($config);
 
 // Fetch user info if logged in
 $user = null;
@@ -87,7 +91,6 @@ function formatDate($datetime, $timezone = 'UTC')
 }
 ?>
 
-
 <body>
     <div class="container">
         <h1>Recent Posts</h1>
@@ -101,7 +104,7 @@ function formatDate($datetime, $timezone = 'UTC')
             $i = -1;
 
             // Set User ID
-            $postUserID = $post['username'];
+            $postUserID = htmlspecialchars($post['username']);
 
             // Get the post tags
             foreach ($tags1 as $tags) {
@@ -112,16 +115,17 @@ function formatDate($datetime, $timezone = 'UTC')
 
             // Convert Markdown to HTML safely
             $postContent = $Parsedown->text($post['content']);
+            $postContent = $purifier->purify($postContent);
 
             // Format the post date and calculate time ago
             $formattedPostDate = formatDate($post['created_at'], 'UTC');
             $timeAgo = timeAgo($post['created_at'], 'UTC');
         ?>
-            <div class="post" data-username="<?php echo strtolower($post['username']); ?>" data-tags="<?php foreach ($tags1 as $tag) {
-                                                                                                            if ($tag['post_id'] == $post['id']) {
-                                                                                                                echo strtolower($tag['name']) . ' ';
-                                                                                                            }
-                                                                                                        } ?>" data-location="<?php echo strtolower($post['location_name']); ?>" data-content="<?php echo strtolower(strip_tags($post['content'])); ?>">
+            <div class="post" data-username="<?php echo strtolower($postUserID); ?>" data-tags="<?php foreach ($tags1 as $tag) {
+                                                                                                    if ($tag['post_id'] == $post['id']) {
+                                                                                                        echo strtolower(htmlspecialchars($tag['name'])) . ' ';
+                                                                                                    }
+                                                                                                } ?>" data-location="<?php echo strtolower(htmlspecialchars($post['location_name'])); ?>" data-content="<?php echo strtolower(strip_tags($post['content'])); ?>">
 
                 <!-- Post title -->
                 <h2 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h2>
@@ -136,7 +140,7 @@ function formatDate($datetime, $timezone = 'UTC')
 
                 <!-- Posted by user -->
                 <p style="display: flex; align-items: center;" class="post-username">
-                    <a href="<?php echo 'user_profile.php?username=' . $post['username'] ?>" class="post-user-link link-primary">
+                    <a href="<?php echo 'user_profile.php?username=' . htmlspecialchars($post['username']); ?>" class="post-user-link link-primary">
                         <?php echo htmlspecialchars($post['username']); ?>
                         <img src="<?php echo !empty($post['profile_photo']) ? htmlspecialchars($post['profile_photo']) : 'profile_photos/default_profile.png'; ?>"
                             alt="Profile Photo" class="profile-photo-post">
@@ -170,7 +174,7 @@ function formatDate($datetime, $timezone = 'UTC')
                 <?php if (!empty($post['location_name']) && !empty($post['latitude']) && !empty($post['longitude'])): ?>
                     <p class="post-location">
                         <strong>Location:</strong>
-                        <a href="view_location.php?lat=<?php echo $post['latitude']; ?>&lng=<?php echo $post['longitude']; ?>&name=<?php echo $post['location_name']; ?>">
+                        <a href="view_location.php?lat=<?php echo htmlspecialchars($post['latitude']); ?>&lng=<?php echo htmlspecialchars($post['longitude']); ?>&name=<?php echo htmlspecialchars($post['location_name']); ?>">
                             <?php echo htmlspecialchars($post['location_name']); ?>
                         </a>
                     </p>
@@ -301,9 +305,6 @@ function formatDate($datetime, $timezone = 'UTC')
             }
         });
     </script>
-
-
-
 </body>
 
 </html>

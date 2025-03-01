@@ -6,6 +6,11 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require 'vendor\erusev\parsedown\Parsedown.php'; // Include Parsedown for Markdown support
+require_once 'vendor/autoload.php'; // Include Composer autoload
+
+// Configure HTMLPurifier
+$config = HTMLPurifier_Config::createDefault();
+$purifier = new HTMLPurifier($config);
 
 if (!isset($_GET['id'])) {
     die("Invalid post ID.");
@@ -24,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment_text'])) {
         die("Error: You must be logged in to comment.");
     }
 
-    $comment_text = trim($_POST['comment_text']);
+    $comment_text = $purifier->purify(trim($_POST['comment_text']));
     $parent_id = isset($_POST['parent_id']) ? (int) $_POST['parent_id'] : null;
     $user_id = $_SESSION['user_id'];
 
@@ -100,12 +105,13 @@ $i = -1;
 
 $Parsedown = new Parsedown(); // Initialize Parsedown
 $postContent = $Parsedown->text($post['content']); // Convert Markdown to HTML
+$postContent = $purifier->purify($postContent); // Sanitize the converted HTML
 ?>
 
 <div class="container">
     <h2><?php echo htmlspecialchars($post['title']); ?></h2>
     <p style="display: flex; align-items: center;" class="post-username">
-        <a href="<?php echo 'user_profile.php?username=' . $post['username'] ?>" class="post-user-link link-primary">
+        <a href="<?php echo 'user_profile.php?username=' . htmlspecialchars($post['username']); ?>" class="post-user-link link-primary">
             <?php echo htmlspecialchars($post['username']); ?>
             <img src="<?php echo !empty($post['profile_photo']) ? htmlspecialchars($post['profile_photo']) : 'profile_photos/default_profile.png'; ?>"
                 alt="Profile Photo" class="profile-photo-post">
@@ -125,7 +131,7 @@ $postContent = $Parsedown->text($post['content']); // Convert Markdown to HTML
     <?php if (!empty($post['location_name']) && !empty($post['latitude']) && !empty($post['longitude'])): ?>
         <p>
             <strong>Location:</strong>
-            <a href="view_location.php?lat=<?php echo $post['latitude']; ?>&lng=<?php echo $post['longitude']; ?>&name=<?php echo $post['location_name']; ?>">
+            <a href="view_location.php?lat=<?php echo htmlspecialchars($post['latitude']); ?>&lng=<?php echo htmlspecialchars($post['longitude']); ?>&name=<?php echo htmlspecialchars($post['location_name']); ?>">
                 <?php echo htmlspecialchars($post['location_name']); ?>
             </a>
         </p>
@@ -188,18 +194,18 @@ $postContent = $Parsedown->text($post['content']); // Convert Markdown to HTML
     <div id="comments">
         <?php function renderComments($comments)
         {
-            global $Parsedown;
+            global $Parsedown, $purifier;
             foreach ($comments as $comment): ?>
                 <div class="comment" id="comment-<?php echo $comment['id']; ?>">
                     <p>
-                        <a href="<?php echo 'user_profile.php?username=' . $comment['username'] ?>" class="post-user-link link-primary">
+                        <a href="<?php echo 'user_profile.php?username=' . htmlspecialchars($comment['username']); ?>" class="post-user-link link-primary">
                             <strong><?php echo htmlspecialchars($comment['username']); ?></strong>
                             <img src="<?php echo !empty($comment['profile_photo']) ? htmlspecialchars($comment['profile_photo']) : 'profile_photos/default_profile.png'; ?>"
                                 alt="Profile Photo" class="profile-photo-post">
                         </a>
-                        <small><?php echo $comment['created_at']; ?></small>
+                        <small><?php echo htmlspecialchars($comment['created_at']); ?></small>
                     </p>
-                    <p><?php echo $Parsedown->text($comment['comment_text']); ?></p>
+                    <p><?php echo $Parsedown->text($purifier->purify($comment['comment_text'])); ?></p>
 
                     <?php if ($comment['parent_id'] == null): ?>
                         <button onclick="replyToComment(<?php echo $comment['id']; ?>)"

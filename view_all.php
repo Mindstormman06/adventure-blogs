@@ -8,7 +8,11 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require 'config.php';
 require 'vendor\erusev\parsedown\Parsedown.php'; // Include Parsedown for Markdown support
+require_once 'vendor/autoload.php'; // Include Composer autoload
 
+// Configure HTMLPurifier
+$config = HTMLPurifier_Config::createDefault();
+$purifier = new HTMLPurifier($config);
 
 $user = null;
 $userRole = null;
@@ -105,11 +109,11 @@ function formatDate($datetime, $timezone = 'UTC')
                     $isAudio = in_array(strtolower($fileExtension['extension']), $audioFileTypes);
                     $isImage = !$isVideo && !$isAudio && !empty($post['image_path']);
                 ?>
-                    <div class="post-tile" data-title="<?php echo $post['title']; ?> data-username=" <?php echo strtolower($post['username']); ?>" data-tags="<?php foreach ($tags1 as $tag) {
-                                                                                                                                                                    if ($tag['post_id'] == $post['id']) {
-                                                                                                                                                                        echo strtolower($tag['name']) . ' ';
-                                                                                                                                                                    }
-                                                                                                                                                                } ?>" data-location="<?php echo strtolower($post['location_name']); ?>" data-content="<?php echo strtolower(strip_tags($post['content'])); ?>">
+                    <div class="post-tile" data-title="<?php echo htmlspecialchars($post['title']); ?>" data-username="<?php echo strtolower(htmlspecialchars($post['username'])); ?>" data-tags="<?php foreach ($tags1 as $tag) {
+                                                                                                                                                                                                        if ($tag['post_id'] == $post['id']) {
+                                                                                                                                                                                                            echo strtolower(htmlspecialchars($tag['name'])) . ' ';
+                                                                                                                                                                                                        }
+                                                                                                                                                                                                    } ?>" data-location="<?php echo strtolower(htmlspecialchars($post['location_name'])); ?>" data-content="<?php echo strtolower(strip_tags($post['content'])); ?>">
 
                         <!-- Title -->
                         <a href="<?php echo "post.php?id=" . $post['id'] ?>">
@@ -118,7 +122,7 @@ function formatDate($datetime, $timezone = 'UTC')
 
                         <!-- Username -->
                         <p style="display: flex; align-items: center;" class="post-username">
-                            <a href="<?php echo 'user_profile.php?username=' . $post['username'] ?>" class="post-user-link link-primary">
+                            <a href="<?php echo 'user_profile.php?username=' . htmlspecialchars($post['username']); ?>" class="post-user-link link-primary">
                                 <?php echo htmlspecialchars($post['username']); ?>
                                 <img src="<?php echo !empty($post['profile_photo']) ? htmlspecialchars($post['profile_photo']) : 'profile_photos/default_profile.png'; ?>"
                                     alt="Profile Photo" class="profile-photo-post">
@@ -143,7 +147,7 @@ function formatDate($datetime, $timezone = 'UTC')
                         <?php if (isset($postFiles[$post['id']]) && is_array($postFiles[$post['id']])): ?>
                             <?php
                             $mediaCount = count($postFiles[$post['id']]);
-                            $gridClass = $mediaCount >= 4 ? 'grid-2x2' : ($mediaCount == 2 ? 'grid-1x2' : 'grid-1x1');
+                            $gridClass = ($mediaCount >= 6 ? 'grid-3x2' : $mediaCount >= 4) ? 'grid-2x2' : ($mediaCount == 2 ? 'grid-1x2' : 'grid-1x1');
                             ?>
 
                             <div class="media-grid <?php echo $gridClass; ?>">
@@ -224,3 +228,5 @@ function formatDate($datetime, $timezone = 'UTC')
         });
     </script>
 </body>
+
+</html>

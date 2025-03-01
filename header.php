@@ -108,5 +108,8 @@ $activeFile = substr($activeFile, 1);
         </div>
     </header>
 </body>
+<script>
+    let $$ = document.querySelector.bind(document);
+</script>
 
 </html>

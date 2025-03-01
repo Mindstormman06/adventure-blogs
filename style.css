@@ -181,6 +181,8 @@ nav a:hover {
     gap: 5px;
     width: 100%;
     height: 200px; /* Consistent height for all media blocks */
+    overflow: hidden; /* Hide overflow */
+
 }
 
 /* Post Styles */
@@ -292,7 +294,7 @@ nav a:hover {
 /* Ensuring media elements have consistent size */
 .media-item {
     width: 100%;
-    height: 100%;
+    height: 100% !important;
     object-fit: cover; /* Crops images/videos instead of stretching */
     border-radius: 10px;
     aspect-ratio: 16/9;
@@ -304,6 +306,10 @@ audio.media-item {
 }
 
 /* Different layouts based on file count */
+.grid-3x2 {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+}
 .grid-2x2 {
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(2, 1fr);
