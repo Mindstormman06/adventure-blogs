@@ -1,8 +1,9 @@
 <?php
+// Add your values here
 $host = 'localhost';
-$dbname = 'aidenharrietblog';
-$username = 'aidenadzich';
-$password = 'root';
+$dbname = 'database'; 
+$username = 'root';
+$password = '';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
