@@ -11,6 +11,24 @@ if (isset($_SESSION['user_id'])) {
     $stmt->execute([$_SESSION['user_id']]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     $isAdmin = ($user['role'] === 'admin');
+} else {
+    if (isset($_COOKIE['remember_token'])) {
+        $token = $_COOKIE['remember_token'];
+    
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE remember_token = ?");
+        $stmt->execute([$token]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        if ($user) {
+            $_SESSION["user_id"] = $user["id"];
+            $_SESSION["username"] = $user["username"];
+            $_SESSION["role"] = $user["role"];
+            header("Location: index.php");
+            exit;
+        } else {
+            setcookie("remember_token", "", time() - 3600, "/", "", true, true);
+        }
+    }
 }
 
 $url = $_SERVER['PHP_SELF'];
@@ -71,7 +89,8 @@ $activeFile = substr($activeFile, 1);
 <body>
 
     <header>
-        <h1>Adventure Blogs</h1>
+        <a href="index.php"><img src="profile_photos/logo_transparent.png" alt="Adventure Blogs Logo" class="logo" style="height: 75px;"></a>
+        <!-- <h1><a href="index.php">Adventure Blogs</a></h1> -->
         <!-- Navigation bar -->
         <div class="nav-container">
             <nav>
@@ -81,7 +100,7 @@ $activeFile = substr($activeFile, 1);
                     <a href="map.php" class="map">Map</a>
                     <?php if (isset($_SESSION['user_id'])): ?>
                         <a href="dashboard.php" class="dashboard">Create Post</a>
-                        <a href="flare.php">🔥 Flare (Beta) 🔥</a>
+                        <!-- <a href="flare.php">🔥 Flare (Beta) 🔥</a> -->
                         <a href="logout.php">Sign Out</a>
 
                     <?php endif; ?>

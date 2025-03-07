@@ -6,6 +6,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Get the username and password from the form
