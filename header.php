@@ -7,7 +7,7 @@ include 'config.php';
 
 $isAdmin = false;
 if (isset($_SESSION['user_id'])) {
-    $stmt = $pdo->prepare("SELECT role, profile_photo, username FROM users WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT role, profile_photo, username, email FROM users WHERE id = ?");
     $stmt->execute([$_SESSION['user_id']]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     $isAdmin = ($user['role'] === 'admin');
@@ -58,6 +58,9 @@ $activeFile = substr($activeFile, 1);
     <!-- Tailwind CSS -->
     <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
 
+    <!-- Flowbite -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.3/flowbite.min.js"></script>
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -83,6 +86,7 @@ $activeFile = substr($activeFile, 1);
         .<?php echo $activeFile; ?> {
             color: aquamarine;
         }
+        
     </style>
 </head>
 
@@ -113,10 +117,33 @@ $activeFile = substr($activeFile, 1);
                 <div class="user-info">
 
                     <?php if (isset($_SESSION['user_id'])): ?>
-                        <img src="<?php echo !empty($user['profile_photo']) ? htmlspecialchars($user['profile_photo']) : 'profile_photos/default_profile.png'; ?>" alt="Profile Photo" class="profile-photo-header">
-                        <a id="user_profile" href="<?php echo 'user_profile.php?username=' . $user['username'] ?>" class="username"><?php echo htmlspecialchars($user['username']); ?> <?php if ($user['role'] == 'admin') {
-                                                                                                                                                                                            echo '(' . htmlspecialchars($user['role']) . ')';
-                                                                                                                                                                                        } ?></a>
+                        
+
+
+                    <button id="dropdownUserAvatarButton" data-dropdown-toggle="dropdownAvatar" class="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600" type="button">
+                    <span class="sr-only">Open user menu</span>
+                    <img class="w-8 h-8 rounded-full" src="<?php echo($user['profile_photo'])?>" alt="user photo">
+                    </button>
+
+                    <!-- Dropdown menu -->
+                    <div id="dropdownAvatar" class="z-10 hidden bg-gray-600 divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 dark:divide-gray-600">
+                        <div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                        <div><?php echo($user['username'])?></div>
+                        <div class="font-medium truncate"><?php echo($user['email'])?></div>
+                        </div>
+                        <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownUserAvatarButton">
+                        <li>
+                            <a href="<?php echo 'user_profile.php?username=' . $user['username'] ?>" class="block px-4 py-2">View Profile</a>
+                        </li>
+                        <li>
+                            <a href="edit_user.php" class="block px-4 py-2">User Settings</a>
+                        </li>
+                        </ul>
+                        <div class="py-2">
+                        <a href="logout.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Sign out</a>
+                        </div>
+                    </div>
+
                     <?php else: ?>
                         <a href="login.php" class="login">Sign In</a>
                         <a href="register.php" class="register">Register</a>
@@ -130,5 +157,19 @@ $activeFile = substr($activeFile, 1);
 <script>
     let $$ = document.querySelector.bind(document);
 </script>
+
+<script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const $targetEl = document.getElementById('dropdownAvatar');
+            const $triggerEl = document.getElementById('dropdownUserAvatarButton');
+
+            if ($targetEl && $triggerEl) {
+                const dropdown = new Dropdown($targetEl, $triggerEl, {
+                    placement: 'bottom',
+                    triggerType: 'click',
+                });
+            }
+        });
+    </script>
 
 </html>
