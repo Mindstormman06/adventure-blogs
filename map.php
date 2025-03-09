@@ -4,23 +4,23 @@ include 'config.php';
 
 require 'vendor\erusev\parsedown\Parsedown.php'; // Include Parsedown for Markdown support
 require_once 'vendor/autoload.php'; // Include Composer autoload
+require 'models/Post.php'; // Include the Post class
 
 // Configure HTMLPurifier
 $config = HTMLPurifier_Config::createDefault();
 $purifier = new HTMLPurifier($config);
 
-// Fetch all posts
-$stmt = $pdo->query("
-    SELECT posts.id, posts.title, posts.content, posts.image_path, users.username, posts.created_at, users.profile_photo, location_name, latitude, longitude
-    FROM posts 
-    JOIN users ON posts.user_id = users.id 
-    ORDER BY posts.created_at DESC
-");
-$posts = $stmt->fetchAll();
+// Initialize Parsedown
+$Parsedown = new Parsedown(); // Initialize Parsedown
 
-$stmt = $pdo->query("
-    SELECT * FROM flare_posts
-");
+// Create Post object
+$postObj = new Post($pdo, $Parsedown, $purifier);
+
+// Fetch all posts
+$posts = $postObj->getAllPosts();
+
+// Fetch all flare posts
+$stmt = $pdo->query("SELECT * FROM flare_posts");
 $flare_posts = $stmt->fetchAll();
 
 // Ensure map has a valid starting point
@@ -31,7 +31,6 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
     $latitude = 0;  // Default center (change if needed)
     $longitude = 0;
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -116,158 +115,17 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
         <div id="loading-indicator" class="loading-indicator">Fetching location...</div>
     </div>
 
-
     <!-- Load Leaflet from CDN -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-    <!-- Load Map -->
+    <!-- Include the new JavaScript file -->
     <script>
-        let map = L.map('map').setView([49.214009, -123.070856], 5);
         let posts = <?php echo json_encode($posts); ?>;
         let flare_posts = <?php echo json_encode($flare_posts); ?>;
-        let markers = [];
-        let flareMarkers = [];
-
-        let greenIcon = new L.Icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
-        });
-
-        let redIcon = new L.Icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
-        });
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-
-        // Add markers for each post
-        posts.forEach(post => {
-            if (post.latitude && post.longitude && !isNaN(post.latitude) && !isNaN(post.longitude)) {
-                let marker = L.marker([parseFloat(post.latitude), parseFloat(post.longitude)], {
-                        icon: greenIcon
-                    }).addTo(map)
-                    .bindPopup(`<div>
-                                    <h4>${htmlspecialchars(post.title)}</h4>
-                                    <p>By: ${htmlspecialchars(post.username)}</p>
-                                    <p>${htmlspecialchars(post.content.slice(0, 100))}...</p>
-                                    <a href="post.php?id=${post.id}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" style="text-decoration: none">View Post</a>
-                                    <button onclick="openDirections(${post.latitude}, ${post.longitude})" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-2">Directions</button>
-                                </div>`);
-                markers.push(marker);
-            }
-        });
-
-        // Add markers for each flare post
-        flare_posts.forEach(flare_post => {
-            if (flare_post.latitude && flare_post.longitude && !isNaN(flare_post.latitude) && !isNaN(flare_post.longitude)) {
-                let flareMarker = L.marker([parseFloat(flare_post.latitude), parseFloat(flare_post.longitude)], {
-                        icon: redIcon
-                    }).addTo(map)
-                    .bindPopup(`<div>
-                                    <h4>${htmlspecialchars(flare_post.title)}</h4>
-                                    <p>By: ${htmlspecialchars(flare_post.user)}</p>
-                                    <p>${htmlspecialchars(flare_post.description.slice(0, 100))}...</p>
-                                    <button onclick="openDirections(${flare_post.latitude}, ${flare_post.longitude})" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-2">Directions</button>
-                                </div>`);
-                flareMarkers.push(flareMarker);
-            }
-        });
-
-        // Function to open Google Maps with directions
-        function openDirections(lat, lng) {
-            let url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-            window.open(url, '_blank');
-        }
-
-        // Handle checkbox change
-        document.getElementById('toggleMarkers').addEventListener('change', function() {
-            if (this.checked) {
-                markers.forEach(marker => map.addLayer(marker));
-            } else {
-                markers.forEach(marker => map.removeLayer(marker));
-            }
-        });
-        document.getElementById('toggleFlareMarkers').addEventListener('change', function() {
-            if (this.checked) {
-                flareMarkers.forEach(flareMarker => map.addLayer(flareMarker));
-            } else {
-                flareMarkers.forEach(flareMarker => map.removeLayer(flareMarker));
-            }
-        });
-
-        // Add locate button
-        let userMarker;
-        let cachedPosition = null;
-        let locateControl = L.control({
-            position: 'topright'
-        });
-        locateControl.onAdd = function(map) {
-            let div = L.DomUtil.create('div', 'leaflet-control-locate');
-            div.title = 'Locate Me';
-            L.DomEvent.on(div, 'click', function(e) {
-                L.DomEvent.stopPropagation(e); // Stop the click event from propagating to the map
-                let loadingIndicator = document.getElementById('loading-indicator');
-                loadingIndicator.style.display = 'block';
-                if (cachedPosition) {
-                    let lat = cachedPosition.coords.latitude;
-                    let lng = cachedPosition.coords.longitude;
-                    if (userMarker) {
-                        userMarker.setLatLng([lat, lng]);
-                    } else {
-                        userMarker = L.marker([lat, lng], {
-                            icon: redIcon
-                        }).addTo(map);
-                        userMarker.bindPopup('You are here').openPopup();
-                    }
-                    map.setView([lat, lng], 13);
-                    loadingIndicator.style.display = 'none';
-                } else if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(function(position) {
-                        cachedPosition = position;
-                        let lat = position.coords.latitude;
-                        let lng = position.coords.longitude;
-                        if (userMarker) {
-                            userMarker.setLatLng([lat, lng]);
-                        } else {
-                            userMarker = L.marker([lat, lng], {
-                                icon: redIcon
-                            }).addTo(map);
-                            userMarker.bindPopup('You are here').openPopup();
-                        }
-                        map.setView([lat, lng], 13);
-                        loadingIndicator.style.display = 'none';
-                    }, function(error) {
-                        alert('Error getting location: ' + error.message);
-                        loadingIndicator.style.display = 'none';
-                    });
-                } else {
-                    alert('Geolocation is not supported by this browser.');
-                    loadingIndicator.style.display = 'none';
-                }
-            });
-            return div;
-        };
-        locateControl.addTo(map);
-
-        // Function to escape HTML characters
-        function htmlspecialchars(str) {
-            return str.replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
+        let latitude = <?php echo $latitude; ?>;
+        let longitude = <?php echo $longitude; ?>;
     </script>
+    <script src="js/MapHandler.js"></script>
 
 </body>
 

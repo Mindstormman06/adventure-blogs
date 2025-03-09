@@ -7,6 +7,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require 'vendor\erusev\parsedown\Parsedown.php'; // Include Parsedown for Markdown support
 require_once 'vendor/autoload.php'; // Include Composer autoload
+require 'models/Post.php'; // Include the Post class
 
 // Configure HTMLPurifier
 $config = HTMLPurifier_Config::createDefault();
@@ -20,8 +21,10 @@ if (!isset($_GET['id'])) {
 $videoFileTypes = ['mp4', 'ogg', 'webm', 'mov'];
 $audioFileTypes = ['mp3', 'wav', 'ogg', 'm4a', 'flac'];
 
-
 $postId = $_GET['id'];
+
+// Create Post object
+$postObj = new Post($pdo, new Parsedown(), $purifier);
 
 // Handle Comment Submission
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment_text'])) {
@@ -34,8 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment_text'])) {
     $user_id = $_SESSION['user_id'];
 
     if (!empty($comment_text)) {
-        $stmt = $pdo->prepare("INSERT INTO comments (post_id, user_id, comment_text, parent_id, created_at) VALUES (?, ?, ?, ?, NOW())");
-        $stmt->execute([$postId, $user_id, $comment_text, $parent_id]);
+        $postObj->addComment($postId, $user_id, $comment_text, $parent_id);
 
         // Redirect to refresh the page and display the new comment
         header("Location: post.php?id=" . $postId);
@@ -46,31 +48,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment_text'])) {
 }
 
 // Fetch Post Data
-$stmt = $pdo->prepare("SELECT posts.*, users.username, users.profile_photo FROM posts JOIN users ON posts.user_id = users.id WHERE posts.id = ?");
-$stmt->execute([$postId]);
-$post = $stmt->fetch(PDO::FETCH_ASSOC);
+$post = $postObj->getPostById($postId);
 
 if (!$post) {
     die("Post not found.");
 }
 
-$stmt1 = $pdo->query("
-    SELECT tags.id, tags.name, post_tags.post_id
-    FROM tags
-    INNER JOIN post_tags ON tags.id = post_tags.tag_id");
-$tags1 = $stmt1->fetchAll();
-
-$postFilesStmt = $pdo->query("SELECT post_id, file_path, original_filename FROM post_files");
-$postFiles = [];
-while ($row = $postFilesStmt->fetch(PDO::FETCH_ASSOC)) {
-    $postFiles[$row['post_id']][] = $row['file_path'];
-    $postFilesOriginal[$row['post_id']][] = $row['original_filename'];
-}
-
-// Fetch Comments
-$commentStmt = $pdo->prepare("SELECT comments.*, users.username, users.profile_photo FROM comments JOIN users ON comments.user_id = users.id WHERE comments.post_id = ? AND deleted_at IS NULL ORDER BY comments.created_at ASC");
-$commentStmt->execute([$postId]);
-$comments = $commentStmt->fetchAll(PDO::FETCH_ASSOC);
+$tags1 = $postObj->getAllTags();
+list($postFiles, $postFilesOriginal) = $postObj->getAllPostFiles();
+$comments = $postObj->getCommentsByPostId($postId);
 
 // Function to organize threaded comments
 function buildCommentTree($comments, $parentId = null)
@@ -94,18 +80,13 @@ function buildCommentTree($comments, $parentId = null)
 
 $commentTree = buildCommentTree($comments);
 
-
-$commentTree = buildCommentTree($comments);
-
 $fileExtension = pathinfo($postFiles[$post['id']][0]);
 $isVideo = in_array(strtolower($fileExtension['extension']), $videoFileTypes);
 $isAudio = in_array(strtolower($fileExtension['extension']), $audioFileTypes);
 $isImage = !$isVideo && !$isAudio && !empty($post['image_path']);
 $i = -1;
 
-$Parsedown = new Parsedown(); // Initialize Parsedown
-$postContent = $Parsedown->text($post['content']); // Convert Markdown to HTML
-$postContent = $purifier->purify($postContent); // Sanitize the converted HTML
+$postContent = $postObj->formatPostContent($post['content']);
 ?>
 
 <div class="container">
@@ -138,7 +119,6 @@ $postContent = $purifier->purify($postContent); // Sanitize the converted HTML
     <?php endif; ?>
     <!-- Render Markdown -->
     <p><?php echo $postContent; ?></p>
-
 
     <?php if (isset($postFiles[$post['id']]) && is_array($postFiles[$post['id']])): ?>
         <?php foreach ($postFiles[$post['id']] as $file): ?>
@@ -173,7 +153,6 @@ $postContent = $purifier->purify($postContent); // Sanitize the converted HTML
         <?php endforeach; ?>
     <?php endif; ?>
 
-
     <?php if (isset($_SESSION['user_id']) && $user && ($_SESSION['username'] == $post['username'] || $user['role'] == 'admin')): ?>
         <p class="post_controls">
             <a class="btn btn-warning" href="edit_post.php?id=<?php echo $post['id']; ?>">✏️</a>
@@ -183,18 +162,10 @@ $postContent = $purifier->purify($postContent); // Sanitize the converted HTML
     <?php endif; ?>
 
     <h3>Comments</h3>
-    <!-- <?php foreach ($comments as $comment): ?>
-        <p><strong><a href="<?php echo 'user_profile.php?username=' . $comment['username'] ?>" class="post-user-link">
-                    <?php echo htmlspecialchars($comment['username']); ?></i>
-                    <img src="<?php echo !empty($comment['profile_photo']) ? htmlspecialchars($comment['profile_photo']) : 'profile_photos/default_profile.png'; ?>" 
-                        alt="Profile Photo" class="profile-photo-post">
-                </a></strong><?php echo nl2br(htmlspecialchars($comment['comment_text'])); ?></p>
-    <?php endforeach; ?> -->
 
     <div id="comments">
-        <?php function renderComments($comments)
+        <?php function renderComments($comments, $Parsedown, $purifier)
         {
-            global $Parsedown, $purifier;
             foreach ($comments as $comment): ?>
                 <div class="comment" id="comment-<?php echo $comment['id']; ?>">
                     <p>
@@ -245,16 +216,15 @@ $postContent = $purifier->purify($postContent); // Sanitize the converted HTML
 
                     <?php if (!empty($comment['replies'])): ?>
                         <div class="replies">
-                            <?php renderComments($comment['replies']); ?>
+                            <?php renderComments($comment['replies'], $Parsedown, $purifier); ?>
                         </div>
                     <?php endif; ?>
                 </div>
         <?php endforeach;
         }
-        renderComments($commentTree);
+        renderComments($commentTree, $postObj->getParsedown(), $postObj->getPurifier());
         ?>
     </div>
-
 
     <!-- Add a Comment -->
     <?php if (isset($_SESSION['user_id'])): ?>
@@ -266,7 +236,6 @@ $postContent = $purifier->purify($postContent); // Sanitize the converted HTML
         <p><a href="login.php">Login</a> to comment.</p>
     <?php endif; ?>
 </div>
-
 
 <script>
     function editComment(commentId) {

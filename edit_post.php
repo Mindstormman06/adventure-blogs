@@ -3,6 +3,7 @@ include 'auth.php';
 include 'config.php';
 include 'header.php';
 require_once 'vendor/autoload.php'; // Include Composer autoload
+require 'models/Post.php'; // Include the Post class
 
 // Configure HTMLPurifier
 $config = HTMLPurifier_Config::createDefault();
@@ -13,11 +14,12 @@ if (!isset($_GET['id'])) {
     die("Post ID missing.");
 }
 
+// Create Post object
+$postObj = new Post($pdo, new Parsedown(), $purifier);
+
 // Fetch post data
 $post_id = $_GET['id'];
-$stmt = $pdo->prepare("SELECT * FROM posts WHERE id = ?");
-$stmt->execute([$post_id]);
-$post = $stmt->fetch(PDO::FETCH_ASSOC);
+$post = $postObj->getPostById($post_id);
 
 // Check if post belongs to the current user or if the user is an admin
 if (!$post || ($post['user_id'] != $_SESSION['user_id'] && $_SESSION['role'] !== 'admin')) {
@@ -38,18 +40,13 @@ if (!empty($_POST['remove_images'])) {
     }
 }
 
-
 // Fetch existing images
 $imageStmt = $pdo->prepare("SELECT file_path FROM post_files WHERE post_id = ?");
 $imageStmt->execute([$post_id]);
 $existingImages = $imageStmt->fetchAll(PDO::FETCH_COLUMN);
 
 // Fetch current tags
-$tagStmt = $pdo->query("
-    SELECT tags.id, tags.name, post_tags.post_id
-    FROM tags
-    INNER JOIN post_tags ON tags.id = post_tags.tag_id");
-$tags = $tagStmt->fetchAll();
+$tags = $postObj->getAllTags();
 
 function getTags($tags1, $post1)
 {
@@ -63,6 +60,7 @@ function getTags($tags1, $post1)
 
     return implode(", ", $postTagsArray);
 }
+
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $title = trim($_POST["title"]);
@@ -275,7 +273,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <div class="container">
     <h2>Edit Post</h2>
-    <form method="post" enctype="multipart/form-data" onsubmit="return validatePost()">
+    <form method="post" enctype="multipart/form-data" onsubmit="return editPostHandler.validatePost()">
 
         <!-- Title -->
         <div class="form-group">
@@ -308,7 +306,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <?php elseif (preg_match('/\.(mp3|wav|ogg|m4a|flac)$/i', $image)): ?>
                                 <audio src="<?php echo htmlspecialchars($image); ?>" controls class="media-item"></audio>
                             <?php endif; ?>
-                            <button type="button" class="remove-button" onclick="removeMedia(this)">×</button>
+                            <button type="button" class="remove-button" onclick="editPostHandler.removeMedia(this)">×</button>
                             <input type="checkbox" name="remove_images[]" value="<?php echo htmlspecialchars($image); ?>" class="remove-checkbox">
                         </div>
                     <?php endforeach; ?>
@@ -349,260 +347,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-<!-- File Validation Script -->
+<!-- Include the EditPostHandler.js script -->
+<script src="js/EditPostHandler.js"></script>
+
+<!-- Initialize the EditPostHandler class -->
 <script>
-    document.getElementById("file_input").addEventListener("change", function(event) {
-        let fileErrorsDiv = document.getElementById("fileErrors");
-        let filePreviewDiv = document.getElementById("filePreview");
-        fileErrorsDiv.innerHTML = ""; // Clear previous errors
-        filePreviewDiv.innerHTML = ""; // Clear previous previews
-
-        let files = event.target.files;
-        let allowedTypes = [
-            "image/jpeg", "image/png", "image/gif",
-            "video/mp4", "video/webm", "video/quicktime",
-            "audio/mpeg", "audio/wav", "audio/ogg", "audio/mp4", "audio/x-m4a", "audio/x-flac"
-        ];
-        let maxFileSize = 100 * 1024 * 1024; // MB per file
-        let maxFiles = 10;
-
-        if (files.length > maxFiles) {
-            fileErrorsDiv.innerHTML = `<p>Error: You can upload a maximum of ${maxFiles} files.</p>`;
-            event.target.value = ""; // Reset file input
-            return;
-        }
-
-        for (let i = 0; i < files.length; i++) {
-            let file = files[i];
-
-            // Check file type
-            if (!allowedTypes.includes(file.type)) {
-                fileErrorsDiv.innerHTML += `<p>Error: ${file.name} is not an allowed file type.</p>`;
-                event.target.value = ""; // Reset file input
-                return;
-            }
-
-            // Check file size
-            if (file.size > maxFileSize) {
-                fileErrorsDiv.innerHTML += `<p>Error: ${file.name} exceeds the MB limit.</p>`;
-                event.target.value = ""; // Reset file input
-                return;
-            }
-
-            // OPTIONAL: Show image/video previews
-            if (file.type.startsWith("image/")) {
-                let img = document.createElement("img");
-                img.src = URL.createObjectURL(file);
-                img.style.maxWidth = "100px";
-                img.style.margin = "5px";
-                filePreviewDiv.appendChild(img);
-            } else if (file.type.startsWith("video/")) {
-                let vid = document.createElement("video");
-                vid.src = URL.createObjectURL(file);
-                vid.controls = true;
-                vid.style.maxWidth = "150px";
-                vid.style.margin = "5px";
-                filePreviewDiv.appendChild(vid);
-            }
-        }
-    });
-
-    // Form submit validation
-    document.querySelector("form").addEventListener("submit", function(event) {
-        let fileInput = document.getElementById("file_input");
-        let existingMedia = document.querySelectorAll(".media-container .remove-checkbox:not(:checked)").length;
-        let files = fileInput.files;
-        let maxFiles = 10;
-
-        // Check if the total number of files exceeds the maximum allowed
-        if (files.length + existingMedia > maxFiles) {
-            event.preventDefault(); // Prevent form submission
-            let fileErrorsDiv = document.getElementById("fileErrors");
-            fileErrorsDiv.innerHTML = `<p>Error: You can upload a maximum of ${maxFiles} files in total.</p>`;
-        }
-    });
-</script>
-
-
-<!-- Post Validation Script + Map Script -->
-<script>
-    // Real-time content length display
-    document.getElementById("content").addEventListener("input", function() {
-        let charCount = this.value.length;
-        document.getElementById("content-char-count").textContent = charCount + "/1000 characters used";
-    });
-
-    function validatePost() {
-        let title = document.getElementById("title").value;
-        let content = document.getElementById("content").value;
-        let fileErrorsDiv = document.getElementById("fileErrors");
-
-        if (title.trim() === "") {
-            alert("Title must be filled in.");
-            return false;
-        }
-
-        if (content.length > 1000) {
-            alert("Content exceeds the 1000-character limit.");
-            return false;
-        }
-
-        if (fileErrorsDiv.innerHTML !== "") {
-            alert("Please fix file upload errors before submitting.");
-            return false;
-        }
-
-        return true;
-    }
-
-    let map = L.map('map').setView([37.7749, -122.4194], 3);
-    let greenIcon = new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-    });
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
     let latitude = <?php echo !empty($post['latitude']) ? $post['latitude'] : 'null'; ?>;
     let longitude = <?php echo !empty($post['longitude']) ? $post['longitude'] : 'null'; ?>;
-    let marker;
-
-    if (latitude !== null && longitude !== null) {
-        marker = L.marker([latitude, longitude], {
-            icon: greenIcon
-        }).addTo(map);
-        map.setView([latitude, longitude], 10);
-        marker.bindPopup('<button onclick="removeMarker(event)">Remove Location</button>').openPopup();
-    }
-
-    function onMapClick(e) {
-        if (marker) {
-            map.removeLayer(marker);
-        }
-        marker = L.marker(e.latlng, {
-            icon: greenIcon
-        }).addTo(map);
-        document.getElementById("latitude").value = e.latlng.lat;
-        document.getElementById("longitude").value = e.latlng.lng;
-        marker.bindPopup('<button onclick="removeMarker(event)">Remove Location</button>').openPopup();
-    }
-
-    map.on('click', onMapClick);
-
-    function removeMarker(event) {
-        event.preventDefault(); // Prevent form submission
-        if (marker) {
-            map.removeLayer(marker);
-            marker = null;
-            document.getElementById("latitude").value = '';
-            document.getElementById("longitude").value = '';
-        }
-    }
-
-    // Add this inside the <script> tag that initializes the map
-    let userMarker;
-    let cachedPosition = null;
-    let locateControl = L.control({
-        position: 'topright'
-    });
-    locateControl.onAdd = function(map) {
-        let div = L.DomUtil.create('div', 'leaflet-control-locate');
-        div.title = 'Locate Me';
-        L.DomEvent.on(div, 'click', function(e) {
-            L.DomEvent.stopPropagation(e); // Stop the click event from propagating to the map
-            let loadingIndicator = document.getElementById('loading-indicator');
-            loadingIndicator.style.display = 'block';
-            if (cachedPosition) {
-                let lat = cachedPosition.coords.latitude;
-                let lng = cachedPosition.coords.longitude;
-                if (userMarker) {
-                    userMarker.setLatLng([lat, lng]);
-                } else {
-                    userMarker = L.marker([lat, lng], {
-                        icon: greenIcon
-                    }).addTo(map);
-                    userMarker.bindPopup('You are here').openPopup();
-                }
-                map.setView([lat, lng], 13);
-                loadingIndicator.style.display = 'none';
-            } else if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    cachedPosition = position;
-                    let lat = position.coords.latitude;
-                    let lng = position.coords.longitude;
-                    if (userMarker) {
-                        userMarker.setLatLng([lat, lng]);
-                    } else {
-                        userMarker = L.marker([lat, lng], {
-                            icon: greenIcon
-                        }).addTo(map);
-                        userMarker.bindPopup('You are here').openPopup();
-                    }
-                    map.setView([lat, lng], 13);
-                    loadingIndicator.style.display = 'none';
-                }, function(error) {
-                    alert('Error getting location: ' + error.message);
-                    loadingIndicator.style.display = 'none';
-                });
-            } else {
-                alert('Geolocation is not supported by this browser.');
-                loadingIndicator.style.display = 'none';
-            }
-        });
-        return div;
-    };
-    locateControl.addTo(map);
-</script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        let input = document.querySelector('input[name=tags]');
-        let removedTagsInput = document.createElement('input');
-        removedTagsInput.type = 'hidden';
-        removedTagsInput.name = 'removed_tags';
-        document.querySelector('form').appendChild(removedTagsInput);
-
-        let tagify = new Tagify(input);
-
-        tagify.on('remove', function(e) {
-            let removedTag = e.detail.data.value;
-            let removedTags = removedTagsInput.value ? removedTagsInput.value.split(',') : [];
-            removedTags.push(removedTag);
-            removedTagsInput.value = removedTags.join(',');
-        });
-
-        // Convert Tagify output to a simple comma-separated string before submitting the form
-        document.querySelector('form').addEventListener('submit', function() {
-            let tagsArray = tagify.value.map(tag => tag.value);
-            input.value = tagsArray.join(',');
-        });
-    });
-</script>
-<script>
-    function removeMedia(button) {
-        // Get the parent container
-        let container = button.parentElement;
-        // Find the hidden checkbox
-        let checkbox = container.querySelector('.remove-checkbox');
-        // Check the checkbox to mark for removal
-        checkbox.checked = true;
-        // Hide the container visually
-        container.style.display = 'none';
-    }
-</script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        let content = document.getElementById("content");
-        let charCount = content.value.length;
-        document.getElementById("content-char-count").textContent = charCount + "/1000 characters used";
-    });
+    let editPostHandler = new EditPostHandler(latitude, longitude);
 </script>
 
 <?php include 'footer.php'; ?>

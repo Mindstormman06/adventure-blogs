@@ -1,6 +1,7 @@
 <?php
 include 'config.php';
 require 'vendor/autoload.php'; // Load PHPMailer (install with Composer if needed)
+require 'models/User.php'; // Include the User class
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -15,10 +16,10 @@ if (!isset($_SESSION['user_id'])) {
     die("Unauthorized access.");
 }
 
+$userObj = new User($pdo);
+
 // Fetch user data
-$stmt = $pdo->prepare("SELECT id, username, email, password_hash, profile_photo, instagram_link, website_link FROM users WHERE id = ?");
-$stmt->execute([$_SESSION['user_id']]);
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
+$user = $userObj->getUserById($_SESSION['user_id']);
 
 if (!$user) {
     die("User not found.");
@@ -28,7 +29,7 @@ if (!$user) {
 $currentPassword = $_POST['current_password'] ?? '';
 $newUsername = $_POST['username'] ?? $user['username'];
 $newEmail = $_POST['email'] ?? $user['email'];
-$newPassword = $_POST['password_hash'] ?? '';
+$newPassword = $_POST['password'] ?? '';
 $instagram = $_POST['instagram_link'] ?? '';
 $website = $_POST['website_link'] ?? '';
 
@@ -63,42 +64,23 @@ if ($newEmail !== $user['email']) {
     $token = bin2hex(random_bytes(16));
 
     // Store the pending email and token
-    $stmt = $pdo->prepare("UPDATE users SET pending_email = ?, verification_token = ? WHERE id = ?");
-    $stmt->execute([$newEmail, $token, $user['id']]);
+    $userObj->updatePendingEmail($user['id'], $newEmail, $token);
 
     // Send verification email
-    $verificationLink = "http://adventure-blog.ddns.net/verify_email_change.php?token=$token";
-
-    $mail = new PHPMailer(true);
     try {
-        $mail->isSMTP();
-        $mail->Host = $emailConfig['smtp_host'];
-        $mail->SMTPAuth = true;
-        $mail->Username = $emailConfig['smtp_username'];
-        $mail->Password = $emailConfig['smtp_password'];
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port = $emailConfig['smtp_port'];
-
-        $mail->setFrom($emailConfig['from_email'], $emailConfig['from_name']);
-        $mail->addAddress($newEmail);
-        $mail->Subject = "Verify Your New Email Address";
-        $mail->Body = "Click the link to verify your new email: $verificationLink";
-
-        $mail->send();
+        $userObj->sendEmailChangeVerification($newEmail, $token, $emailConfig);
         echo "A verification email has been sent. Please check your inbox.";
     } catch (Exception $e) {
-        echo "Email could not be sent. Mailer Error: {$mail->ErrorInfo}";
+        echo "Email could not be sent. Mailer Error: {$e->getMessage()}";
     }
 }
 
 // Update database with new profile information
 if (!empty($newPassword)) {
     $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-    $stmt = $pdo->prepare("UPDATE users SET username = ?, password_hash = ?, profile_photo = ?, instagram_link = ?, _link = ? WHERE id = ?");
-    $stmt->execute([$newUsername, $hashedPassword, $profilePhoto, $instagram, $website, $user['id']]);
+    $userObj->updateUserProfile($user['id'], $newUsername, $newEmail, $hashedPassword, $instagram, $website, $profilePhoto);
 } else {
-    $stmt = $pdo->prepare("UPDATE users SET username = ?, profile_photo = ?, instagram_link = ?, website_link = ? WHERE id = ?");
-    $stmt->execute([$newUsername, $profilePhoto, $instagram, $website, $user['id']]);
+    $userObj->updateUserProfile($user['id'], $newUsername, $newEmail, $user['password_hash'], $instagram, $website, $profilePhoto);
 }
 
 // Redirect with a message

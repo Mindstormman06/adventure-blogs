@@ -3,6 +3,12 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+require 'config.php';
+require 'models/User.php'; // Include the User class
+
+$userObj = new User($pdo);
+$userObj->authenticate();
+
 if (!isset($_SESSION["user_id"]) && !isset($_COOKIE["remember_token"])) {
 
     $token = $_COOKIE["remember_token"];

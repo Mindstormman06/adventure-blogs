@@ -1,17 +1,26 @@
 <?php
+
 // Start Session if it's not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
 // Requirements
 include 'header.php';
 require 'config.php';
 require 'vendor\erusev\parsedown\Parsedown.php'; // Include Parsedown for Markdown support
 require_once 'vendor/autoload.php'; // Include Composer autoload
+require 'models/Post.php'; // Include the Post class
 
 // Configure HTMLPurifier
 $config = HTMLPurifier_Config::createDefault();
 $purifier = new HTMLPurifier($config);
+
+// Initialize Parsedown
+$Parsedown = new Parsedown(); // Initialize Parsedown
+
+// Create Post object
+$postObj = new Post($pdo, $Parsedown, $purifier);
 
 // Fetch user info if logged in
 $user = null;
@@ -27,68 +36,11 @@ if (isset($_SESSION['user_id'])) {
 $videoFileTypes = ['mp4', 'ogg', 'webm', 'mov'];
 $audioFileTypes = ['mp3', 'wav', 'ogg', 'm4a', 'flac'];
 
-// Fetch all posts
-$stmt = $pdo->query("
-    SELECT posts.id, posts.title, posts.content, posts.image_path, users.username, posts.created_at, users.profile_photo, location_name, latitude, longitude
-    FROM posts 
-    JOIN users ON posts.user_id = users.id 
-    ORDER BY posts.created_at DESC
-");
-$posts = $stmt->fetchAll();
+// Fetch all posts, tags, and post files
+$posts = $postObj->getAllPosts();
+$tags1 = $postObj->getAllTags();
+list($postFiles, $postFilesOriginal) = $postObj->getAllPostFiles();
 
-// Fetch all tags
-$stmt1 = $pdo->query("
-    SELECT tags.id, tags.name, post_tags.post_id
-    FROM tags
-    INNER JOIN post_tags ON tags.id = post_tags.tag_id");
-$tags1 = $stmt1->fetchAll();
-
-// Fetch all post files
-$postFilesStmt = $pdo->query("SELECT post_id, file_path, original_filename FROM post_files");
-$postFiles = [];
-while ($row = $postFilesStmt->fetch(PDO::FETCH_ASSOC)) {
-    $postFiles[$row['post_id']][] = $row['file_path'];
-    $postFilesOriginal[$row['post_id']][] = $row['original_filename'];
-}
-
-// Initialize Parsedown
-$Parsedown = new Parsedown(); // Initialize Parsedown
-
-// Function to calculate how long ago a post was submitted
-function timeAgo($datetime, $timezone = 'UTC')
-{
-    $now = new DateTime("now", new DateTimeZone($timezone));
-    $postTime = new DateTime($datetime, new DateTimeZone($timezone));
-    $diff = $now->diff($postTime);
-
-    if ($diff->y > 0) {
-        return $diff->y . " year" . ($diff->y > 1 ? "s" : "") . " ago";
-    }
-    if ($diff->m > 0) {
-        return $diff->m . " month" . ($diff->m > 1 ? "s" : "") . " ago";
-    }
-    if ($diff->d > 0) {
-        if ($diff->d >= 7) {
-            $weeks = floor($diff->d / 7);
-            return $weeks . " week" . ($weeks > 1 ? "s" : "") . " ago";
-        }
-        return $diff->d . " day" . ($diff->d > 1 ? "s" : "") . " ago";
-    }
-    if ($diff->h > 0) {
-        return $diff->h . " hour" . ($diff->h > 1 ? "s" : "") . " ago";
-    }
-    if ($diff->i > 0) {
-        return $diff->i . " minute" . ($diff->i > 1 ? "s" : "") . " ago";
-    }
-    return "Just now";
-}
-
-// Function to format date as YYYY/MM/DD
-function formatDate($datetime, $timezone = 'UTC')
-{
-    $date = new DateTime($datetime, new DateTimeZone($timezone));
-    return $date->format('Y/m/d');  // Format as YYYY/MM/DD
-}
 ?>
 
 <body>
@@ -114,18 +66,21 @@ function formatDate($datetime, $timezone = 'UTC')
             }
 
             // Convert Markdown to HTML safely
-            $postContent = $Parsedown->text($post['content']);
-            $postContent = $purifier->purify($postContent);
+            $postContent = $postObj->formatPostContent($post['content']);
 
             // Format the post date and calculate time ago
-            $formattedPostDate = formatDate($post['created_at'], 'UTC');
-            $timeAgo = timeAgo($post['created_at'], 'UTC');
+            $formattedPostDate = $postObj->formatDate($post['created_at'], 'UTC');
+            $timeAgo = $postObj->timeAgo($post['created_at'], 'UTC');
         ?>
-            <div class="post" data-username="<?php echo strtolower($postUserID); ?>" data-tags="<?php foreach ($tags1 as $tag) {
-                                                                                                    if ($tag['post_id'] == $post['id']) {
-                                                                                                        echo strtolower(htmlspecialchars($tag['name'])) . ' ';
-                                                                                                    }
-                                                                                                } ?>" data-location="<?php echo strtolower(htmlspecialchars($post['location_name'])); ?>" data-content="<?php echo strtolower(strip_tags($post['content'])); ?>">
+            <div class="post" 
+                data-username="<?php echo strtolower($postUserID); ?>" 
+                data-tags="<?php foreach ($tags1 as $tag) {
+                    if ($tag['post_id'] == $post['id']) {
+                        echo strtolower(htmlspecialchars($tag['name'])) . ' ';
+                    }
+                } ?>" 
+                data-location="<?php echo strtolower(htmlspecialchars($post['location_name'])); ?>" 
+                data-content="<?php echo strtolower(strip_tags($post['content'])); ?>">
 
                 <!-- Post title -->
                 <h2 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h2>
@@ -245,66 +200,8 @@ function formatDate($datetime, $timezone = 'UTC')
 
     <?php include 'footer.php'; ?>
 
-    <!-- Script to display the time difference in a human-readable format -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            document.querySelectorAll(".post-time").forEach(function(element) {
-                let pstTime = element.getAttribute("data-time");
-
-                if (!pstTime) return; // Skip if no timestamp found
-
-                let dateObjPST = new Date(pstTime); // Stored PST timestamp
-                if (isNaN(dateObjPST.getTime())) { // Check for invalid date
-                    console.error("Invalid date format for:", pstTime);
-                    element.innerText = "Error loading time";
-                    return;
-                }
-
-                // Step 1: Convert PST → UTC (Add 8 hours)
-                let dateObjUTC = new Date(dateObjPST.getTime() + (8 * 60 * 60 * 1000));
-
-                // Step 2: Convert UTC → Local Time (Based on viewer's timezone)
-                let localTime = new Date(dateObjUTC.getTime() - dateObjUTC.getTimezoneOffset() * 60000);
-
-                // console.log("Stored PST Time:", pstTime);
-                // console.log("Converted UTC Time:", dateObjUTC.toISOString());
-                // console.log("Viewer's Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
-                // console.log("Local Time:", localTime.toLocaleString());
-
-                // Format the local date as YYYY/MM/DD
-                let formattedDate = localTime.getFullYear() + '/' +
-                    ('0' + (localTime.getMonth() + 1)).slice(-2) + '/' +
-                    ('0' + localTime.getDate()).slice(-2);
-
-                // Get the time difference (e.g., "2 hours ago", "3 days ago", etc.)
-                let timeAgo = getTimeAgo(localTime);
-
-                // Display the formatted date and time difference
-                element.innerText = `${formattedDate} (${timeAgo})`;
-            });
-
-            function getTimeAgo(localTime) {
-                let now = new Date(); // Local time
-                let diff = now - localTime;
-
-                // Calculate time difference in milliseconds
-                let minutes = Math.floor(diff / (1000 * 60));
-                let hours = Math.floor(diff / (1000 * 60 * 60));
-                let days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                let weeks = Math.floor(days / 7);
-                let months = Math.floor(days / 30);
-                let years = Math.floor(days / 365);
-
-                if (years > 0) return `${years} year${years > 1 ? 's' : ''} ago`;
-                if (months > 0) return `${months} month${months > 1 ? 's' : ''} ago`;
-                if (weeks > 0) return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
-                if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
-                if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-                if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-                return "Just now";
-            }
-        });
-    </script>
+    <!-- Include the new JavaScript file -->
+    <script src="js/PostHandler.js"></script>
 </body>
 
 </html>

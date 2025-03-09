@@ -2,7 +2,8 @@
 include 'header.php';
 include 'config.php';
 require 'vendor\erusev\parsedown\Parsedown.php'; // Include Parsedown for Markdown support
-
+require_once 'vendor/autoload.php'; // Include Composer autoload
+require 'models/Post.php'; // Include the Post class
 
 if (!isset($_GET['username'])) {
     die("User not found.");
@@ -19,31 +20,25 @@ $username = $_GET['username'];
 $stmt = $pdo->prepare("SELECT id, username, email, profile_photo, instagram_link, website_link FROM users WHERE username = ?");
 $stmt->execute([$username]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
-// echo '<pre>'; print_r($user); echo '</pre>';
-// echo '<pre>'; print_r($_SESSION); echo '</pre>';
-
 
 if (!$user) {
     die("User not found.");
 }
 
-// Fetch user posts
-$stmt = $pdo->prepare("SELECT id, title, image_path, created_at FROM posts WHERE user_id = ? ORDER BY created_at DESC");
-$stmt->execute([$user['id']]);
-$posts = $stmt->fetchAll();
+// Configure HTMLPurifier
+$config = HTMLPurifier_Config::createDefault();
+$purifier = new HTMLPurifier($config);
 
-$stmt1 = $pdo->query("
-    SELECT tags.id, tags.name, post_tags.post_id
-    FROM tags
-    INNER JOIN post_tags ON tags.id = post_tags.tag_id");
-$tags1 = $stmt1->fetchAll();
-
-$postFilesStmt = $pdo->query("SELECT post_id, file_path FROM post_files");
-$postFiles = [];
-while ($row = $postFilesStmt->fetch(PDO::FETCH_ASSOC)) {
-    $postFiles[$row['post_id']][] = $row['file_path'];
-}
+// Initialize Parsedown
 $Parsedown = new Parsedown(); // Initialize Parsedown
+
+// Create Post object
+$postObj = new Post($pdo, $Parsedown, $purifier);
+
+// Fetch user posts, tags, and post files
+$posts = $postObj->getUserPosts($user['id']);
+$tags1 = $postObj->getAllTags();
+list($postFiles, $postFilesOriginal) = $postObj->getAllPostFiles();
 
 ?>
 

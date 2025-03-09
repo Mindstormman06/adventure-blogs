@@ -1,6 +1,7 @@
 <?php
 include 'header.php';
 include 'config.php';
+require 'models/User.php'; // Include the User class
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -12,21 +13,50 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Get user data
-$stmt = $pdo->prepare("SELECT id, username, email, password_hash, instagram_link, website_link FROM users WHERE id = ?");
-$stmt->execute([$_SESSION['user_id']]);
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
+$userObj = new User($pdo);
 
-// Get user posts
-$stmt = $pdo->prepare("SELECT id, title, created_at FROM posts WHERE user_id = ? ORDER BY created_at DESC");
-$stmt->execute([$_SESSION['user_id']]);
-$posts = $stmt->fetchAll();
+// Get user data
+$user = $userObj->getUserById($_SESSION['user_id']);
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $username = trim($_POST["username"]);
+    $email = trim($_POST["email"]);
+    $currentPassword = $_POST["current_password"];
+    $newPassword = $_POST["password"];
+    $instagramLink = trim($_POST["instagram_link"]);
+    $websiteLink = trim($_POST["website_link"]);
+    $profilePhotoPath = null;
+
+    // Verify current password
+    if (!password_verify($currentPassword, $user['password_hash'])) {
+        die("Current password is incorrect.");
+    }
+
+    // Hash new password if provided
+    $passwordHash = $user['password_hash'];
+    if (!empty($newPassword)) {
+        $passwordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+    }
+
+    // Handle profile photo upload
+    if (!empty($_FILES["profile_photo"]["name"])) {
+        $uploadDir = "profile_photos/";
+        $profilePhotoPath = $uploadDir . basename($_FILES["profile_photo"]["name"]);
+        move_uploaded_file($_FILES["profile_photo"]["tmp_name"], $profilePhotoPath);
+    }
+
+    // Update user profile
+    $userObj->updateUserProfile($_SESSION['user_id'], $username, $email, $passwordHash, $instagramLink, $websiteLink, $profilePhotoPath);
+
+    // Refresh user data
+    $user = $userObj->getUserById($_SESSION['user_id']);
+}
 ?>
 
 <div class="container">
     <h1>Update Profile</h1>
 
-    <form action="update_profile.php" method="POST" enctype="multipart/form-data">
+    <form action="edit_user.php" method="POST" enctype="multipart/form-data">
 
         <!-- Username -->
         <div class="form-group">
@@ -73,6 +103,5 @@ $posts = $stmt->fetchAll();
         <button type="submit" class="btn btn-success" style="margin-top: 10px">Update Profile</button>
     </form>
 </div>
-
 
 <?php include 'footer.php'; ?>

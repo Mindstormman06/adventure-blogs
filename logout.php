@@ -3,9 +3,11 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-session_destroy();
+require 'config.php';
+require 'models/User.php'; // Include the User class
 
-setcookie("remember_token", "", time() - 3600, "/", "", false, true);
+$userObj = new User($pdo);
+$userObj->logout();
 
 header("Location: login.php");
 exit;

@@ -9,10 +9,17 @@ if (session_status() === PHP_SESSION_NONE) {
 require 'config.php';
 require 'vendor\erusev\parsedown\Parsedown.php'; // Include Parsedown for Markdown support
 require_once 'vendor/autoload.php'; // Include Composer autoload
+require 'models/Post.php'; // Include the Post class
 
 // Configure HTMLPurifier
 $config = HTMLPurifier_Config::createDefault();
 $purifier = new HTMLPurifier($config);
+
+// Initialize Parsedown
+$Parsedown = new Parsedown(); // Initialize Parsedown
+
+// Create Post object
+$postObj = new Post($pdo, $Parsedown, $purifier);
 
 $user = null;
 $userRole = null;
@@ -29,67 +36,11 @@ if (isset($_SESSION['user_id'])) {
 $videoFileTypes = ['mp4', 'ogg', 'webm', 'mov'];
 $audioFileTypes = ['mp3', 'wav', 'ogg', 'm4a', 'flac'];
 
-// Fetch all posts
-$stmt = $pdo->query("
-    SELECT posts.id, posts.title, posts.content, posts.image_path, users.username, posts.created_at, users.profile_photo, location_name, latitude, longitude
-    FROM posts 
-    JOIN users ON posts.user_id = users.id 
-    ORDER BY posts.created_at DESC
-");
-$posts = $stmt->fetchAll();
+// Fetch all posts, tags, and post files
+$posts = $postObj->getAllPosts();
+$tags1 = $postObj->getAllTags();
+list($postFiles, $postFilesOriginal) = $postObj->getAllPostFiles();
 
-// Fetch all tags
-$stmt1 = $pdo->query("
-    SELECT tags.id, tags.name, post_tags.post_id
-    FROM tags
-    INNER JOIN post_tags ON tags.id = post_tags.tag_id");
-$tags1 = $stmt1->fetchAll();
-
-// Fetch all post files
-$postFilesStmt = $pdo->query("SELECT post_id, file_path FROM post_files");
-$postFiles = [];
-while ($row = $postFilesStmt->fetch(PDO::FETCH_ASSOC)) {
-    $postFiles[$row['post_id']][] = $row['file_path'];
-}
-
-// Initialize Parsedown
-$Parsedown = new Parsedown(); // Initialize Parsedown
-
-// Function to convert datetime to time ago
-function timeAgo($datetime, $timezone = 'UTC')
-{
-    $now = new DateTime("now", new DateTimeZone($timezone));
-    $postTime = new DateTime($datetime, new DateTimeZone($timezone));
-    $diff = $now->diff($postTime);
-
-    if ($diff->y > 0) {
-        return $diff->y . " year" . ($diff->y > 1 ? "s" : "") . " ago";
-    }
-    if ($diff->m > 0) {
-        return $diff->m . " month" . ($diff->m > 1 ? "s" : "") . " ago";
-    }
-    if ($diff->d > 0) {
-        if ($diff->d >= 7) {
-            $weeks = floor($diff->d / 7);
-            return $weeks . " week" . ($weeks > 1 ? "s" : "") . " ago";
-        }
-        return $diff->d . " day" . ($diff->d > 1 ? "s" : "") . " ago";
-    }
-    if ($diff->h > 0) {
-        return $diff->h . " hour" . ($diff->h > 1 ? "s" : "") . " ago";
-    }
-    if ($diff->i > 0) {
-        return $diff->i . " minute" . ($diff->i > 1 ? "s" : "") . " ago";
-    }
-    return "Just now";
-}
-
-// Function to format date as YYYY/MM/DD
-function formatDate($datetime, $timezone = 'UTC')
-{
-    $date = new DateTime($datetime, new DateTimeZone($timezone));
-    return $date->format('Y/m/d');  // Format as YYYY/MM/DD
-}
 ?>
 
 <body>
@@ -130,7 +81,7 @@ function formatDate($datetime, $timezone = 'UTC')
                         </p>
 
                         <!-- Posted Date -->
-                        <p><i><?php echo date('F j, Y', strtotime($post['created_at'])); ?></i></p>
+                        <p><i><?php echo $postObj->formatDate($post['created_at']); ?></i></p>
 
                         <!-- Tags -->
                         <p class="post-tags"><strong>Tags:</strong>
@@ -188,45 +139,7 @@ function formatDate($datetime, $timezone = 'UTC')
     <?php include 'footer.php'; ?>
 
     <!-- JavaScript to filter posts by search query -->
-    <script>
-        document.getElementById("search").addEventListener("input", function() {
-            let query = this.value.toLowerCase().trim();
-            console.log("Search Query:", query); // Debugging
-
-            let posts = document.querySelectorAll(".post-tile");
-
-            posts.forEach(post => {
-                let username = post.getAttribute("data-username")?.toLowerCase() || "";
-                let tags = post.getAttribute("data-tags")?.toLowerCase() || "";
-                let location = post.getAttribute("data-location")?.toLowerCase() || "";
-                let title = post.getAttribute("data-title")?.toLowerCase() || ""; // Ensure title exists
-
-                console.log("Post Data:", {
-                    username,
-                    tags,
-                    location,
-                    title
-                }); // Debugging
-
-                let matches = false;
-
-                if (query.startsWith("@")) {
-                    let searchTerm = query.substring(1); // Remove @
-                    matches = username.includes(searchTerm);
-                    console.log("Searching by Username:", searchTerm, matches);
-                } else if (query.startsWith("#")) {
-                    let searchTerm = query.substring(1); // Remove #
-                    matches = tags.includes(searchTerm);
-                    console.log("Searching by Tag:", searchTerm, matches);
-                } else {
-                    matches = location.includes(query) || title.includes(query);
-                    console.log("Searching by Title/Location:", query, matches);
-                }
-
-                post.style.display = matches ? "flex" : "none";
-            });
-        });
-    </script>
+    <script src="js/SearchHandler.js"></script>
 </body>
 
 </html>

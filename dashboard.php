@@ -3,6 +3,20 @@ include 'auth.php';
 include 'header.php';
 include 'config.php';
 
+require 'vendor\erusev\parsedown\Parsedown.php'; // Include Parsedown for Markdown support
+require_once 'vendor/autoload.php'; // Include Composer autoload
+require 'models/Post.php'; // Include the Post class
+
+// Configure HTMLPurifier
+$config = HTMLPurifier_Config::createDefault();
+$purifier = new HTMLPurifier($config);
+
+// Initialize Parsedown
+$Parsedown = new Parsedown(); // Initialize Parsedown
+
+// Create Post object
+$postObj = new Post($pdo, $Parsedown, $purifier);
+
 // Check if user is an admin or user
 $stmt = $pdo->prepare("SELECT role FROM users WHERE id = ?");
 $stmt->execute([$_SESSION['user_id']]);
@@ -20,11 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $latitude = !empty($_POST["latitude"]) ? $_POST["latitude"] : null;
     $longitude = !empty($_POST["longitude"]) ? $_POST["longitude"] : null;
     $tagsInput = trim($_POST["tags"]);
-    if (isset($latitude) && isset($longitude)) {
-        $location_name = !empty($_POST['location_name']) ? $_POST['location_name'] : "Tagged Location";
-    } else {
-        $location_name = null;
-    }
+    $location_name = isset($latitude) && isset($longitude) ? (!empty($_POST['location_name']) ? $_POST['location_name'] : "Tagged Location") : null;
 
     // Validate title and content
     if (empty($title)) {
@@ -32,124 +42,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } elseif (strlen($content) > 1000) {
         echo "<p>Error: Content exceeds the 1000-character limit.</p>";
     } else {
-        // Handle Image Upload
-        if (!empty($_FILES["image"]["name"])) {
-            $maxFileSize = 100 * 1024 * 1024; // 100MB max
-            if ($_FILES["image"]["size"] > $maxFileSize) {
-                echo "<p>Error: File is too large.</p>";
-                exit;
+        try {
+            // Create post
+            $post_id = $postObj->createPost($user_id, $title, $content, $location_name, $latitude, $longitude);
+
+            // Handle file uploads
+            if (!empty($_FILES["images"]["name"][0])) {
+                $postObj->uploadFiles($post_id, $_FILES["images"]);
             }
-            $targetDir = "uploads/";
-            $imagePath = $targetDir . basename($_FILES["image"]["name"]);
-            move_uploaded_file($_FILES["image"]["tmp_name"], $imagePath);
+
+            // Add tags
+            if (!empty($tagsInput)) {
+                $postObj->addTags($post_id, $tagsInput);
+            }
+
+            echo "<p>Post uploaded successfully! <a href='index.php'>View posts</a></p>";
+            header("Location: index.php");
+            exit;
+        } catch (Exception $e) {
+            echo "<p>Error: " . $e->getMessage() . "</p>";
         }
-
-        // Insert post into database
-        $stmt = $pdo->prepare("INSERT INTO posts (user_id, title, content, location_name, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$user_id, $title, $content, $location_name, $latitude, $longitude]);
-        $post_id = $pdo->lastInsertId();
-
-        // Allowed File Data
-        $allowedTypes = [
-            "image/jpeg",
-            "image/png",
-            "image/gif",
-            "video/mp4",
-            "video/webm",
-            "video/quicktime",
-            "audio/mpeg",
-            "audio/wav",
-            "audio/ogg",
-            "audio/mp4",
-            "audio/x-m4a",
-            "audio/flac"
-        ];
-        $maxFileSize = 100 * 1024 * 1024; // 32MB max per file
-        $targetDir = "uploads/";
-
-        // Handle file validation
-        if (!empty($_FILES["images"]["name"][0])) {
-            $totalFiles = count($_FILES["images"]["name"]);
-            if ($totalFiles > 10) {
-                echo "<p>Error: You can upload a maximum of 10 files.</p>";
-                exit;
-            }
-
-            for ($i = 0; $i < $totalFiles; $i++) {
-
-                // Check file size
-                if ($_FILES["images"]["size"][$i] > $maxFileSize) {
-                    echo "<p>Error: File " . $_FILES["images"]["name"][$i] . " is too large.</p>";
-                    exit;
-                }
-
-                // Check file type
-                $finfo = finfo_open(FILEINFO_MIME_TYPE);
-                $fileType = finfo_file($finfo, $_FILES["images"]["tmp_name"][$i]);
-                finfo_close($finfo);
-                if (!in_array($fileType, $allowedTypes)) {
-                    echo "<p>Error: Invalid file type for " . $_FILES["images"]["name"][$i] . ".</p>";
-                    exit;
-                }
-
-                // Get file extension
-                $fileExt = pathinfo($_FILES["images"]["name"][$i], PATHINFO_EXTENSION);
-
-                // Store Original File Name
-                $originalFileName = pathinfo($_FILES["images"]["name"][$i], PATHINFO_FILENAME);
-
-                // Rename file to include post ID and timestamp
-                $customFileName = $post_id . "-" . time() . "-" . $i . "." . $fileExt;
-
-                // Move file to uploads directory
-                $filePath = $targetDir . $customFileName;
-                move_uploaded_file($_FILES["images"]["tmp_name"][$i], $filePath);
-
-                // Convert FLAC to MP3 (UNCOMMENT IF NEEDED)
-
-                // if ($fileExt === "flac") {
-                //     $mp3FilePath = str_replace(".flac", ".mp3", $filePath);
-                //     $ffmegPath = "\"C:\\ffmpeg-master-latest-win64-gpl\\bin\\ffmpeg.exe\"";
-                //     $ffmpegCmd = $ffmegPath . " -i " . escapeshellarg($filePath) . " -ab 192k -y " . escapeshellarg($mp3FilePath) . " 2>&1";
-                //     shell_exec($ffmpegCmd);
-
-                //     echo "<pre>";
-                //     echo "Command: " . $ffmpegCmd . "\n";
-
-                //     unlink($filePath);
-
-                //     $filePath = $mp3FilePath;
-
-                // }
-
-                // Insert file path into post_files table
-                $stmt = $pdo->prepare("INSERT INTO post_files (post_id, file_path, original_filename) VALUES (?, ?, ?)");
-                $stmt->execute([$post_id, $filePath, $originalFileName]);
-                $fileId = $pdo->lastInsertId();
-            }
-        }
-
-        // Insert tags into database
-        if (!empty($tagsInput)) {
-            $tagsArray = array_map('trim', explode(',', $tagsInput));
-            foreach ($tagsArray as $tag) {
-                $stmt = $pdo->prepare("SELECT id FROM tags WHERE name = ?");
-                $stmt->execute([$tag]);
-                $tag_id = $stmt->fetchColumn();
-
-                if (!$tag_id) {
-                    $stmt = $pdo->prepare("INSERT INTO tags (name) VALUES (?)");
-                    $stmt->execute([$tag]);
-                    $tag_id = $pdo->lastInsertId();
-                }
-
-                $pdo->prepare("INSERT INTO post_tags (post_id, tag_id) VALUES (?, ?)")->execute([$post_id, $tag_id]);
-            }
-        }
-
-        echo "<p>Post uploaded successfully! <a href='index.php'>View posts</a></p>";
-        header("Location: index.php");
-        exit;
     }
 }
 ?>
@@ -215,7 +127,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <div class="container">
     <h2>Create a New Post</h2>
-    <form method="post" enctype="multipart/form-data" onsubmit="return validatePost()">
+    <form method="post" enctype="multipart/form-data" onsubmit="return postHandler.validatePost()">
 
         <!-- Title -->
         <div class="form-group">
@@ -272,196 +184,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-<!-- File Validation Script -->
+<!-- Pass data to JavaScript -->
 <script>
-    document.getElementById("file_input").addEventListener("change", function(event) {
-        let fileErrorsDiv = document.getElementById("fileErrors");
-        let filePreviewDiv = document.getElementById("filePreview");
-        fileErrorsDiv.innerHTML = ""; // Clear previous errors
-        filePreviewDiv.innerHTML = ""; // Clear previous previews
-
-        let files = event.target.files;
-        let allowedTypes = [
-            "image/jpeg", "image/png", "image/gif",
-            "video/mp4", "video/webm", "video/quicktime",
-            "audio/mpeg", "audio/wav", "audio/ogg", "audio/mp4", "audio/x-m4a", "audio/x-flac"
-        ];
-        let maxFileSize = 100 * 1024 * 1024; // 32MB per file
-        let maxFiles = 10;
-
-        if (files.length > maxFiles) {
-            fileErrorsDiv.innerHTML = `<p>Error: You can upload a maximum of ${maxFiles} files.</p>`;
-            event.target.value = ""; // Reset file input
-            return;
-        }
-
-        for (let i = 0; i < files.length; i++) {
-            let file = files[i];
-
-            // Check file type
-            if (!allowedTypes.includes(file.type)) {
-                fileErrorsDiv.innerHTML += `<p>Error: ${file.name} is not an allowed file type.</p>`;
-                event.target.value = ""; // Reset file input
-                return;
-            }
-
-            // Check file size
-            if (file.size > maxFileSize) {
-                fileErrorsDiv.innerHTML += `<p>Error: ${file.name} exceeds the 100MB limit.</p>`;
-                event.target.value = ""; // Reset file input
-                return;
-            }
-
-            // OPTIONAL: Show image/video previews
-            if (file.type.startsWith("image/")) {
-                let img = document.createElement("img");
-                img.src = URL.createObjectURL(file);
-                img.style.maxWidth = "100px";
-                img.style.margin = "5px";
-                filePreviewDiv.appendChild(img);
-            } else if (file.type.startsWith("video/")) {
-                let vid = document.createElement("video");
-                vid.src = URL.createObjectURL(file);
-                vid.controls = true;
-                vid.style.maxWidth = "150px";
-                vid.style.margin = "5px";
-                filePreviewDiv.appendChild(vid);
-            }
-        }
-    });
+    let latitude = 37.7749; // Default latitude
+    let longitude = -122.4194; // Default longitude
 </script>
-
-<!-- Post Validation Script + Map Script -->
-<script>
-    // Real-time content length display
-    document.getElementById("content").addEventListener("input", function() {
-        let charCount = this.value.length;
-        document.getElementById("content-char-count").textContent = charCount + "/1000 characters used";
-    });
-
-    function validatePost() {
-        let title = document.getElementById("title").value;
-        let content = document.getElementById("content").value;
-        let fileErrorsDiv = document.getElementById("fileErrors");
-
-        if (title.trim() === "") {
-            alert("Title must be filled in.");
-            return false;
-        }
-
-        if (content.length > 1000) {
-            alert("Content exceeds the 1000-character limit.");
-            return false;
-        }
-
-        if (fileErrorsDiv.innerHTML !== "") {
-            alert("Please fix file upload errors before submitting.");
-            return false;
-        }
-
-        return true;
-    }
-
-    // Initialize map
-    let map = L.map('map').setView([37.7749, -122.4194], 3); // Default to a wide zoom level
-
-    // Add OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    let marker;
-
-    let greenIcon = new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-    });
-
-    function onMapClick(e) {
-        if (marker) {
-            map.removeLayer(marker);
-        }
-        marker = L.marker(e.latlng, {
-            icon: greenIcon
-        }).addTo(map);
-        document.getElementById("latitude").value = e.latlng.lat;
-        document.getElementById("longitude").value = e.latlng.lng;
-    }
-
-    map.on('click', onMapClick);
-
-    // Add this inside the <script> tag that initializes the map
-    let userMarker;
-    let cachedPosition = null;
-    let locateControl = L.control({
-        position: 'topright'
-    });
-    locateControl.onAdd = function(map) {
-        let div = L.DomUtil.create('div', 'leaflet-control-locate');
-        div.title = 'Locate Me';
-        L.DomEvent.on(div, 'click', function(e) {
-            L.DomEvent.stopPropagation(e); // Stop the click event from propagating to the map
-            let loadingIndicator = document.getElementById('loading-indicator');
-            loadingIndicator.style.display = 'block';
-            if (cachedPosition) {
-                let lat = cachedPosition.coords.latitude;
-                let lng = cachedPosition.coords.longitude;
-                if (userMarker) {
-                    userMarker.setLatLng([lat, lng]);
-                } else {
-                    userMarker = L.marker([lat, lng], {
-                        icon: greenIcon
-                    }).addTo(map);
-                    userMarker.bindPopup('You are here').openPopup();
-                }
-                map.setView([lat, lng], 13);
-                loadingIndicator.style.display = 'none';
-            } else if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    cachedPosition = position;
-                    let lat = position.coords.latitude;
-                    let lng = position.coords.longitude;
-                    if (userMarker) {
-                        userMarker.setLatLng([lat, lng]);
-                    } else {
-                        userMarker = L.marker([lat, lng], {
-                            icon: greenIcon
-                        }).addTo(map);
-                        userMarker.bindPopup('You are here').openPopup();
-                    }
-                    map.setView([lat, lng], 13);
-                    loadingIndicator.style.display = 'none';
-                }, function(error) {
-                    alert('Error getting location: ' + error.message);
-                    loadingIndicator.style.display = 'none';
-                });
-            } else {
-                alert('Geolocation is not supported by this browser.');
-                loadingIndicator.style.display = 'none';
-            }
-        });
-        return div;
-    };
-    locateControl.addTo(map);
-</script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        let input = document.querySelector('input[name=tags]');
-        let removedTagsInput = document.createElement('input');
-
-        let tagify = new Tagify(input);
-
-        // Convert Tagify output to a simple comma-separated string before submitting the form
-        document.querySelector('form').addEventListener('submit', function() {
-            let tagsArray = tagify.value.map(tag => tag.value);
-            input.value = tagsArray.join(',');
-        });
-    });
-</script>
+<script src="js/PostHandler.js"></script>
+<script src="js/CreatePostMapHandler.js"></script>
 
 <?php include 'footer.php'; ?>
