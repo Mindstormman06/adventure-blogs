@@ -1,7 +1,9 @@
 class MapHandler {
-    constructor(latitude, longitude) {
+    constructor(latitude, longitude, posts, flarePosts) {
         this.latitude = latitude;
         this.longitude = longitude;
+        this.posts = posts;
+        this.flarePosts = flarePosts;
         this.map = null;
         this.markers = [];
         this.userMarker = null;
@@ -18,27 +20,15 @@ class MapHandler {
         document.addEventListener("DOMContentLoaded", () => {
             this.initializeMap();
             this.addLocateControl();
+            this.addPostMarkers();
         });
     }
 
     initializeMap() {
-        this.map = L.map('map').setView([this.latitude, this.longitude], 5);
+        this.map = L.map('map', { dragging: false, zoomControl: false }).setView([this.latitude, this.longitude], 5);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(this.map);
-
-        let marker;
-
-        this.map.on('click', (e) => {
-            if (marker) {
-                this.map.removeLayer(marker);
-            }
-            marker = L.marker(e.latlng, {
-                icon: this.greenIcon
-            }).addTo(this.map);
-            document.getElementById("latitude").value = e.latlng.lat;
-            document.getElementById("longitude").value = e.latlng.lng;
-        });
     }
 
     addLocateControl() {
@@ -93,7 +83,34 @@ class MapHandler {
         };
         locateControl.addTo(this.map);
     }
+
+    addPostMarkers() {
+        this.posts.forEach(post => {
+            if (post.latitude && post.longitude) {
+                let marker = L.marker([post.latitude, post.longitude], {
+                    icon: this.greenIcon
+                }).addTo(this.map);
+                marker.bindPopup(`
+                    <b>${post.title}</b>
+                    <br>
+                    ${post.location_name}
+                    <br>
+                    By: ${post.username}
+                    <br>
+                    <p>${post.content.slice(0, 100)}...</p>
+                    <a href="post.php?id=${post.id}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" style="text-decoration: none">View Post</a>
+                    <button onclick="openDirections(${post.latitude}, ${post.longitude})" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-2">Directions</button>
+                `);
+                this.markers.push(marker);
+            }
+        });
+    }
+
 }
 
 // Initialize the MapHandler class
-let mapHandler = new MapHandler(latitude, longitude);
+let mapHandler = new MapHandler(latitude, longitude, posts, flare_posts);
+
+function openDirections(lat, lng) {
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+}

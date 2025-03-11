@@ -9,33 +9,35 @@ if (session_status() === PHP_SESSION_NONE) {
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = trim($_POST["username"]);
-    $password = $_POST["password"];
+    $password = trim($_POST["password"]);
     $remember = isset($_POST["remember_me"]);
 
     $userObj = new User($pdo);
 
-    try {
-        $user = $userObj->login($username, $password);
+    $result = $userObj->login($username, $password);
+
+    if (is_array($result)) {
 
         // Set the session variables
-        $_SESSION["user_id"] = $user["id"];
-        $_SESSION["username"] = $username;
-        $_SESSION["role"] = $user["role"];
-
+        $_SESSION["user_id"] = $result["id"];
+        $_SESSION["username"] = $result["username"];
+        $_SESSION["role"] = $result["role"];
         if ($remember) {
-            $userObj->rememberUser($user["id"]);
+            $userObj->rememberUser($result["id"]);
         }
-
         header("Location: index.php");
         exit;
-    } catch (Exception $e) {
-        echo "<p>" . $e->getMessage() . "</p>";
+    } else {
+        $error = $result;
     }
 }
 ?>
 
 <div class="container">
     <h2>Adventure Blogs</h2>
+    <?php if (!empty($error)): ?>
+        <div class="error-box"><?php echo htmlspecialchars($error); ?></div>
+    <?php endif; ?>
     <form method="post">
         <label>Username:</label>
         <input type="text" name="username" required>

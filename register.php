@@ -10,6 +10,8 @@ include 'config.php';
 require 'models/User.php'; // Include the User class
 $emailConfig = require 'email_config_personal.php';
 
+$error = '';
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = trim($_POST["username"]);
     $password = $_POST["password"];
@@ -18,21 +20,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!empty($username) && !empty($email) && !empty($password)) {
         $userObj = new User($pdo);
 
-        try {
-            $verificationToken = $userObj->register($username, $email, $password);
-            $userObj->sendVerificationEmail($email, $verificationToken, $emailConfig);
-            echo "<p>Registration successful! Please check your email to verify your account (Check your junk!). If you do not verify within a day, you will have to re-create your account.</p>";
-        } catch (Exception $e) {
-            echo "<p>Error: " . $e->getMessage() . "</p>";
-        }
+        $result = $userObj->register($username, $email, $password);
+
+        if (isset($result['success']) && $result['success'] === true) {
+            try {
+                $userObj->sendVerificationEmail($email, $result['token'], $emailConfig);
+                $error = "Registration successful! Please check your email to verify your account (Check your junk!). If you do not verify within a day, you will have to re-create your account.";
+            } catch (Exception $e) {
+                $error = "Error: " . $e->getMessage();
+            }
+        } else {
+            $error = $result; // Handle errors properly
+        }        
     } else {
-        echo "<p>Please fill in all fields.</p>";
+        $error = "Please fill in all fields.";
     }
 }
 ?>
 
 <div class="container">
     <h2>Register</h2>
+    <?php if (!empty($error)): ?>
+        <div class="error-box"><?php echo htmlspecialchars($error); ?></div>
+    <?php endif; ?>
     <form method="post">
         <label>Email:</label>
         <input type="email" name="email" required>

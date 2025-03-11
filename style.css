@@ -442,6 +442,16 @@ form label {
     padding-left: 10px; /* Ensure placeholder is well-aligned */
 }
 
+.error-box {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
 
 
 

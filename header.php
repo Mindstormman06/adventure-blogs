@@ -3,6 +3,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+
 include 'config.php';
 
 $isAdmin = false;
@@ -104,9 +105,7 @@ $activeFile = substr($activeFile, 1);
                     <a href="map.php" class="map">Map</a>
                     <?php if (isset($_SESSION['user_id'])): ?>
                         <a href="dashboard.php" class="dashboard">Create Post</a>
-                        <!-- <a href="flare.php">🔥 Flare (Beta) 🔥</a> -->
-                        <a href="logout.php">Sign Out</a>
-
+                        <!-- <a href="flare.php">🔥 Flare (Beta) 🔥</a> -->                        
                     <?php endif; ?>
 
                 <?php endif; ?>
@@ -117,38 +116,33 @@ $activeFile = substr($activeFile, 1);
                 <div class="user-info">
 
                     <?php if (isset($_SESSION['user_id'])): ?>
-                        
+                        <button id="dropdownUserAvatarButton" data-dropdown-toggle="dropdownAvatar" class="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600" type="button">
+                        <span class="sr-only">Open user menu</span>
+                        <img class="w-8 h-8 rounded-full" src="<?php echo($user['profile_photo'])?>" alt="user photo">
+                        </button>
 
-
-                    <button id="dropdownUserAvatarButton" data-dropdown-toggle="dropdownAvatar" class="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600" type="button">
-                    <span class="sr-only">Open user menu</span>
-                    <img class="w-8 h-8 rounded-full" src="<?php echo($user['profile_photo'])?>" alt="user photo">
-                    </button>
-
-                    <!-- Dropdown menu -->
-                    <div id="dropdownAvatar" class="z-10 hidden bg-gray-600 divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 dark:divide-gray-600">
-                        <div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
-                        <div><?php echo($user['username'])?></div>
-                        <div class="font-medium truncate"><?php echo($user['email'])?></div>
+                        <!-- Dropdown menu -->
+                        <div id="dropdownAvatar" class="z-10 hidden bg-gray-600 divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 dark:divide-gray-600">
+                            <div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                            <div><?php echo($user['username'])?></div>
+                            <div class="font-medium truncate"><?php echo($user['email'])?></div>
+                            </div>
+                            <ul class="px-4 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownUserAvatarButton">
+                            <li>
+                                <a href="<?php echo 'user_profile.php?username=' . $user['username'] ?>" class="block px-4">View Profile</a>
+                            </li>
+                            <li>
+                                <a href="edit_user.php" class="block px-4">User Settings</a>
+                            </li>
+                            </ul>
+                            <div class="">
+                            <a href="logout.php" class="block px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Sign out</a>
+                            </div>
                         </div>
-                        <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownUserAvatarButton">
-                        <li>
-                            <a href="<?php echo 'user_profile.php?username=' . $user['username'] ?>" class="block px-4 py-2">View Profile</a>
-                        </li>
-                        <li>
-                            <a href="edit_user.php" class="block px-4 py-2">User Settings</a>
-                        </li>
-                        </ul>
-                        <div class="py-2">
-                        <a href="logout.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Sign out</a>
-                        </div>
-                    </div>
-
                     <?php else: ?>
                         <a href="login.php" class="login">Sign In</a>
                         <a href="register.php" class="register">Register</a>
                     <?php endif; ?>
-
                 </div>
             </nav>
         </div>
@@ -173,3 +167,4 @@ $activeFile = substr($activeFile, 1);
     </script>
 
 </html>
+

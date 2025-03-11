@@ -17,7 +17,14 @@ class User {
         $stmt = $this->pdo->prepare("SELECT * FROM users WHERE email = ?");
         $stmt->execute([$email]);
         if ($stmt->rowCount() > 0) {
-            throw new Exception("Email already in use.");
+            return "Email already in use.";
+        }
+
+        // Check if the username already exists
+        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE username = ?");
+        $stmt->execute([$username]);
+        if ($stmt->rowCount() > 0) {
+            return "Username already in use.";
         }
 
         // Hash the password
@@ -30,7 +37,10 @@ class User {
         $stmt = $this->pdo->prepare("INSERT INTO users (username, email, password_hash, verification_token, role, verified) VALUES (?, ?, ?, ?, 'user', 0)");
         $stmt->execute([$username, $email, $hashedPassword, $verificationToken]);
 
-        return $verificationToken;
+        return [
+            'success' => true,
+            'token' => $verificationToken
+        ];
     }
 
     public function sendVerificationEmail($email, $verificationToken, $emailConfig) {
@@ -96,12 +106,12 @@ class User {
         // Check if the user exists and the password is correct
         if ($user && password_verify($password, $user['password_hash'])) {
             if ($user['verified'] == 0) {
-                throw new Exception("Your account is not verified. Please check your email for the verification link.");
+                return "Your account is not verified. Please check your email for the verification link.";
             }
 
             return $user;
         } else {
-            throw new Exception("Invalid username or password.");
+            return "Invalid username or password.";
         }
     }
 

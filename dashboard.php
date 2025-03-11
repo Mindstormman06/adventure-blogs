@@ -1,11 +1,19 @@
 <?php
+
+ob_start();
+
+include 'config.php';
 include 'auth.php';
 include 'header.php';
-include 'config.php';
 
 require 'vendor\erusev\parsedown\Parsedown.php'; // Include Parsedown for Markdown support
 require_once 'vendor/autoload.php'; // Include Composer autoload
 require 'models/Post.php'; // Include the Post class
+
+if ($user['role'] !== 'user' && $user['role'] !== 'admin') {
+    die("Access denied. Only registered users can create posts.");
+}
+
 
 // Configure HTMLPurifier
 $config = HTMLPurifier_Config::createDefault();
@@ -22,9 +30,6 @@ $stmt = $pdo->prepare("SELECT role FROM users WHERE id = ?");
 $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if ($user['role'] !== 'user' && $user['role'] !== 'admin') {
-    die("Access denied. Only registered users can create posts.");
-}
 
 // Handle Post Submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -56,7 +61,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $postObj->addTags($post_id, $tagsInput);
             }
 
-            echo "<p>Post uploaded successfully! <a href='index.php'>View posts</a></p>";
             header("Location: index.php");
             exit;
         } catch (Exception $e) {
@@ -193,3 +197,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <script src="js/CreatePostMapHandler.js"></script>
 
 <?php include 'footer.php'; ?>
+
+<?php ob_end_flush(); ?>
