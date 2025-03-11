@@ -452,6 +452,16 @@ form label {
     border-radius: 4px;
 }
 
+.success-box {
+    color: black;
+    background-color: #00ff8c;
+    border-color: #00ff0c;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
 
 
 

@@ -11,11 +11,13 @@ require 'models/User.php'; // Include the User class
 $emailConfig = require 'email_config_personal.php';
 
 $error = '';
+$errorClass = 'error-box';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = trim($_POST["username"]);
     $password = $_POST["password"];
     $email = trim($_POST["email"]);
+    $errorClass = 'error-box';
 
     if (!empty($username) && !empty($email) && !empty($password)) {
         $userObj = new User($pdo);
@@ -26,6 +28,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             try {
                 $userObj->sendVerificationEmail($email, $result['token'], $emailConfig);
                 $error = "Registration successful! Please check your email to verify your account (Check your junk!). If you do not verify within a day, you will have to re-create your account.";
+                $errorClass = 'success-box';
+
             } catch (Exception $e) {
                 $error = "Error: " . $e->getMessage();
             }
@@ -41,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <div class="container">
     <h2>Register</h2>
     <?php if (!empty($error)): ?>
-        <div class="error-box"><?php echo htmlspecialchars($error); ?></div>
+        <div class="<?php echo $errorClass; ?>"><?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>
     <form method="post">
         <label>Email:</label>
