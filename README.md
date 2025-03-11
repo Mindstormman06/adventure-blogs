@@ -35,7 +35,7 @@ cd adventure-blog
 composer install
 ```
 
-### 2. Set Up the Database
+### 3. Set Up the Database
 
 Create a new database in MySQL and import the SQL schema:
 
@@ -45,7 +45,7 @@ CREATE DATABASE adventure_blog;
 
 Then, import the provided SQL file (`database_schema.sql`) or manually create the necessary tables.
 
-### 3. Configure Database Settings
+### 4. Configure Database Settings
 
 Create `config.php` in the project folder and configure your database connection details:
 
@@ -65,7 +65,7 @@ try {
 ?>
 ```
 
-### 4. Configure Email
+### 5. Configure Email
 
 For email functionality (password resets, email verification), create `email_config.php` configure your email settings.
 
@@ -78,15 +78,15 @@ For email functionality (password resets, email verification), create `email_con
     'from_name' => 'Example Verifier',
 ```
 
-### 5. Set Up Apache or Nginx
+### 6. Set Up Apache or Nginx
 
 Ensure your web server is configured to serve PHP files correctly. If you're using Apache, ensure `mod_rewrite` is enabled for clean URLs.
 
-### 6. Set Permissions
+### 7. Set Permissions
 
 Make sure that all necessary files have appropriate read/write permissions for the web server.
 
-### 7. Start Using the Blog
+### 8. Start Using the Blog
 
 Once you've set everything up, you can start the blog on your local server or deploy it live. The blog should be accessible via your local server's URL (`localhost` or similar).
 
