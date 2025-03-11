@@ -29,6 +29,12 @@ git clone https://github.com/Mindstormman06/adventure-blogs.git
 cd adventure-blog
 ```
 
+### 2. Install requirements
+
+```bash
+composer install
+```
+
 ### 2. Set Up the Database
 
 Create a new database in MySQL and import the SQL schema:
