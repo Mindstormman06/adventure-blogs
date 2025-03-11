@@ -4,8 +4,8 @@ Adventure Blog is a simple, customizable, and secure blog platform that allows u
 
 ## Features
 
-- **User Authentication**: Secure login, registration, and password hashing.
-- **Post Creation**: Users can create posts with text, images, audio, and video.
+- **User Authentication**: Secure login, registration, password hashing, and account verification.
+- **Post Creation**: Users can create posts with text, images, audio, video, and location.
 - **Email Verification**: Users must verify their email address before updating it.
 - **Profile Management**: Users can view and update their profile information.
 - **Admin Controls**: Admins can manage user roles and delete posts.
@@ -41,7 +41,7 @@ Then, import the provided SQL file (`database_schema.sql`) or manually create th
 
 ### 3. Configure Database Settings
 
-Open `config.php` and configure your database connection details:
+Create `config.php` in the project folder and configure your database connection details:
 
 ```php
 <?php
@@ -61,7 +61,7 @@ try {
 
 ### 4. Configure Email
 
-For email functionality (password resets, email verification), configure your email settings in `email_config.php`, and update the imports at the top of `update_profile.php` & `register.php` to use `email_config.php`
+For email functionality (password resets, email verification), create `email_config.php` configure your email settings.
 
 ```php
     'smtp_host' => 'smtp.gmail.com',
@@ -83,14 +83,6 @@ Make sure that all necessary files have appropriate read/write permissions for t
 ### 7. Start Using the Blog
 
 Once you've set everything up, you can start the blog on your local server or deploy it live. The blog should be accessible via your local server's URL (`localhost` or similar).
-
-## Usage
-
-- **Login**: Users can log in with their registered username and password.
-- **Create Posts**: After logging in, users can create posts with images, videos, and text.
-- **Edit Profile**: Users can update their profile information (email, username, password).
-- **Verify Email**: When updating the email address, users will receive a verification email.
-- **Admin Controls**: Admins can manage posts and user roles through the admin interface.
 
 ## Development
 
