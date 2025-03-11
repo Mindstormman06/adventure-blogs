@@ -15,3 +15,6 @@ go-trainers/
 adminer-4.17.1-mysql.php
 config.php
 go-trainers/sprites/
+email_config.php
+.well-known
+robots.txt

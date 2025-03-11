@@ -190,8 +190,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <!-- Pass data to JavaScript -->
 <script>
-    let latitude = 37.7749; // Default latitude
-    let longitude = -122.4194; // Default longitude
+    let latitude = 48.42764383; // Default latitude
+    let longitude = -123.36470309; // Default longitude
 </script>
 <script src="js/PostHandler.js"></script>
 <script src="js/CreatePostMapHandler.js"></script>

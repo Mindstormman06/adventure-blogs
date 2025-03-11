@@ -75,8 +75,13 @@ $activeFile = substr($activeFile, 1);
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
     <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
 
+    
+
+
     <!-- Background Image -->
     <style type="text/css">
+
+    
         body {
             background: url(backgrounds/<?php echo $selectedBg; ?>);
             background-attachment: fixed;

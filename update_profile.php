@@ -6,7 +6,7 @@ require 'models/User.php'; // Include the User class
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-$emailConfig = require 'email_config_personal.php';
+$emailConfig = require 'email_config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
