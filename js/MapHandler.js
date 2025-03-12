@@ -25,7 +25,7 @@ class MapHandler {
     }
 
     initializeMap() {
-        this.map = L.map('map', { dragging: false, zoomControl: false }).setView([this.latitude, this.longitude], 5);
+        this.map = L.map('map', { dragging: true, zoomControl: true }).setView([this.latitude, this.longitude], 5);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(this.map);
