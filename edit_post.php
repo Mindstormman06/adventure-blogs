@@ -1,4 +1,7 @@
 <?php
+
+ob_start();
+
 include 'auth.php';
 include 'config.php';
 include 'header.php';
@@ -358,3 +361,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </script>
 
 <?php include 'footer.php'; ?>
+
+<?php ob_end_flush(); ?>
