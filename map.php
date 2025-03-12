@@ -101,7 +101,7 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
     <div class="container map-container">
         <h1>Post Map</h1>
         <p>Explore the locations of our posts and flares.</p>
-        <div style="flex-direction: row;">
+        <!-- <div style="flex-direction: row;">
             <label>
                 <input type="checkbox" id="toggleMarkers" checked>
                 Show AB Markers
@@ -110,7 +110,7 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
                 <input type="checkbox" id="toggleFlareMarkers" checked>
                 Show Flare Markers
             </label>
-        </div>
+        </div> -->
         <div id="map"></div>
         <div id="loading-indicator" class="loading-indicator">Fetching location...</div>
     </div>
