@@ -2,7 +2,7 @@
 //header("Content-Type: application/json");
 
 
-echo json_encode("here is the POST from PHP world: " . implode(',', $_POST));
+// echo json_encode("here is the POST from PHP world: " . implode(',', $_POST));
 
 include 'db.php';
 
