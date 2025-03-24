@@ -1,11 +1,13 @@
 <?php
+//header("Content-Type: application/json");
+
+
+echo json_encode("here is the POST from PHP world: " . implode(',', $_POST));
+
 include 'db.php';
-header("Content-Type: application/json");
 
 // Read the raw input
 $raw_input = file_get_contents("php://input");
-
-echo json_encode("here is the POST from PHP world: " . implode(',', $_POST));
 
 // Log the raw input for debugging
 error_log("Raw input: " . $raw_input);
