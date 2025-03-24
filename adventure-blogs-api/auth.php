@@ -1,5 +1,5 @@
 <?php
-header("Content-Type: application/json");
+//header("Content-Type: application/json");
 
 
 // echo json_encode("here is the POST from PHP world: " . implode(',', $_POST));
@@ -35,7 +35,6 @@ $username = $_POST["username"];
 $password = $_POST["password"]; // Plaintext password sent from mobile app
 
 echo("username: " . $username . " password: " . $password);
-echo $_POST;
 
 // Prepare the SQL query to find the user by username
 $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
