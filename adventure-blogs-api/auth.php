@@ -15,17 +15,17 @@ $data = json_decode($raw_input, true);
 
 
 // Check if JSON decoding failed
-if (json_last_error() !== JSON_ERROR_NONE) {
-    error_log("JSON decode error: " . json_last_error_msg());
-    echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
-    exit;
-}
+// if (json_last_error() !== JSON_ERROR_NONE) {
+//     error_log("JSON decode error: " . json_last_error_msg());
+//     echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
+//     exit;
+// }
 
-// Check if username and password are provided
-if (!isset($data["username"]) || !isset($data["password"])) {
-    echo json_encode(["status" => "error", "message" => "Username or password missing"]);
-    exit;
-}
+// // Check if username and password are provided
+// if (!isset($data["username"]) || !isset($data["password"])) {
+//     echo json_encode(["status" => "error", "message" => "Username or password missing"]);
+//     exit;
+// }
 
 $username = $data["username"];
 $password = $data["password"]; // Plaintext password sent from mobile app
