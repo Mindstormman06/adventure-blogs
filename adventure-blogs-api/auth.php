@@ -34,6 +34,9 @@ include 'db.php';
 $username = $_POST["username"];
 $password = $_POST["password"]; // Plaintext password sent from mobile app
 
+echo("username: " . $username . " password: " . $password);
+echo $_POST;
+
 // Prepare the SQL query to find the user by username
 $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
 $stmt->bind_param("s", $username);
