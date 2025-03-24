@@ -8,8 +8,11 @@ $raw_input = file_get_contents("php://input");
 // Log the raw input for debugging
 error_log("Raw input: " . $raw_input);
 
+echo json_encode("here is the data before json_decode: " . $raw_input);
+
 // Decode the JSON input
 $data = json_decode($raw_input, true);
+
 
 // Check if JSON decoding failed
 if (json_last_error() !== JSON_ERROR_NONE) {
