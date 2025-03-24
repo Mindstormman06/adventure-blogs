@@ -1,5 +1,5 @@
 <?php
-header("Content-Type: application/x-www-form-urlencoded");
+header("Content-Type: application/json");
 
 
 // echo json_encode("here is the POST from PHP world: " . implode(',', $_POST));
