@@ -7,14 +7,14 @@
 include 'db.php';
 
 // Read the raw input
-// $raw_input = file_get_contents("php://input");
+ $raw_input = file_get_contents("php://input");
 
 // Log the raw input for debugging
 // error_log("Raw input: " . $raw_input);
 
 
 // Decode the JSON input
-// $data = json_decode($raw_input, true);
+$data = json_decode($raw_input, true);
 
 
 // Check if JSON decoding failed
@@ -31,8 +31,10 @@ include 'db.php';
 // }
 
 //if (isset($_POST && $_POST['username' ]))
-$username = $_POST["username"];
-$password = $_POST["password"]; // Plaintext password sent from mobile app
+//$username = $_POST["username"];
+//$password = $_POST["password"]; // Plaintext password sent from mobile app
+$username = $data["username"];
+$password = $data["password"]; // Plaintext password sent from mobile app
 
 echo("username: " . $username . " password: " . $password);
 
