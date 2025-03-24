@@ -2,15 +2,10 @@
 header("Content-Type: application/json");
 
 
-// echo json_encode("here is the POST from PHP world: " . implode(',', $_POST));
 
 include 'db.php';
-var_dump($_GET);
-// Read the raw input
- $raw_input = file_get_contents("php://input");
 
-// Log the raw input for debugging
-// error_log("Raw input: " . $raw_input);
+$raw_input = file_get_contents("php://input");
 
 
 // Decode the JSON input
@@ -18,21 +13,18 @@ $data = json_decode($raw_input, true);
 
 
 // Check if JSON decoding failed
-// if (json_last_error() !== JSON_ERROR_NONE) {
-//     error_log("JSON decode error: " . json_last_error_msg());
-//     echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
-//     exit;
-// }
+if (json_last_error() !== JSON_ERROR_NONE) {
+    error_log("JSON decode error: " . json_last_error_msg());
+    echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
+    exit;
+}
 
 // // Check if username and password are provided
-// if (!isset($data["username"]) || !isset($data["password"])) {
-//     echo json_encode(["status" => "error", "message" => "Username or password missing"]);
-//     exit;
-// }
+if (!isset($data["username"]) || !isset($data["password"])) {
+    echo json_encode(["status" => "error", "message" => "Username or password missing"]);
+    exit;
+}
 
-//if (isset($_POST && $_POST['username' ]))
-//$username = $_POST["username"];
-//$password = $_POST["password"]; // Plaintext password sent from mobile app
 $username = $data["username"];
 $password = $data["password"]; // Plaintext password sent from mobile app
 
