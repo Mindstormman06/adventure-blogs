@@ -5,7 +5,7 @@ header("Content-Type: application/json");
 // echo json_encode("here is the POST from PHP world: " . implode(',', $_POST));
 
 include 'db.php';
-
+var_dump($_GET);
 // Read the raw input
  $raw_input = file_get_contents("php://input");
 
