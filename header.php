@@ -99,7 +99,7 @@ $activeFile = substr($activeFile, 1);
 <body>
 
     <header>
-        <a href="index.php"><img src="profile_photos/logo_transparent.png" alt="Adventure Blogs Logo" class="logo" style="height: 75px;"></a>
+        <a href="index.php"><img src="logo_transparent.png" alt="Adventure Blogs Logo" class="logo" style="height: 75px;"></a>
         <!-- <h1><a href="index.php">Adventure Blogs</a></h1> -->
         <!-- Navigation bar -->
         <div class="nav-container">
