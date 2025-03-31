@@ -44,7 +44,7 @@
             formData.delete("auth"); // Remove the token from the form data to avoid sending it as a field
 
             try {
-                const response = await fetch("http://adventure-blog.ddns.net/adventure-blogs-api/create_post.php", {
+                const response = await fetch("https://adventure-blog.ddns.net/adventure-blogs-api/create_post.php", {
                     method: "POST",
                     headers: {
                         "Authorization": authToken // Set the Authorization header
