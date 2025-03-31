@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test FormData Upload</title>
+</head>
+<body>
+    <h1>Test FormData Upload</h1>
+    <form id="testForm" action="http://adventure-blogs-api/adventure-blogs-api/create_post.php" method="POST" enctype="multipart/form-data">
+        <label for="title">Title:</label><br>
+        <input type="text" id="title" name="title" required><br><br>
+
+        <label for="content">Content:</label><br>
+        <textarea id="content" name="content" rows="4" cols="50" required></textarea><br><br>
+
+        <label for="latitude">Latitude:</label><br>
+        <input type="text" id="latitude" name="latitude"><br><br>
+
+        <label for="longitude">Longitude:</label><br>
+        <input type="text" id="longitude" name="longitude"><br><br>
+
+        <label for="location_name">Location Name:</label><br>
+        <input type="text" id="location_name" name="location_name"><br><br>
+
+        <label for="tags">Tags (comma-separated):</label><br>
+        <input type="text" id="tags" name="tags"><br><br>
+
+        <label for="files">Upload Files (up to 10):</label><br>
+        <input type="file" id="files" name="files[]" multiple><br><br>
+
+        <label for="auth">Authorization Token:</label><br>
+        <input type="text" id="auth" name="auth" placeholder="Bearer <your_token>" required><br><br>
+
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
