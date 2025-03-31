@@ -7,7 +7,7 @@
 </head>
 <body>
     <h1>Test FormData Upload</h1>
-    <form id="testForm" action="http://adventure-blog.ddns.net/adventure-blogs-api/create_post.php" method="POST" enctype="multipart/form-data">
+    <form id="testForm">
         <label for="title">Title:</label><br>
         <input type="text" id="title" name="title" required><br><br>
 
@@ -34,38 +34,36 @@
 
         <button type="submit">Submit</button>
     </form>
-    <script>
-        document.querySelector("form").addEventListener("submit", async function(event) {
-          event.preventDefault(); // Prevent default form submission
-      
-          const formData = new FormData(this); // Get form data
-          const headers = {};
 
-            // Extract header values from the form (if any)
-            for (const [key, value] of formData.entries()) {
-                if (key.toLowerCase() === "auth") {
-                headers["Authorization"] = value; // Set Authorization header
+    <script>
+        document.querySelector("#testForm").addEventListener("submit", async function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const formData = new FormData(this); // Get form data
+            const authToken = formData.get("auth"); // Extract the Authorization token
+            formData.delete("auth"); // Remove the token from the form data to avoid sending it as a field
+
+            try {
+                const response = await fetch("http://adventure-blog.ddns.net/adventure-blogs-api/create_post.php", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": authToken // Set the Authorization header
+                    },
+                    body: formData // Send the FormData directly
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
                 }
+
+                const data = await response.json();
+                console.log("Success:", data); // Handle success
+                alert("Post created successfully!");
+            } catch (error) {
+                console.error("Error:", error); // Handle errors
+                alert("An error occurred: " + error.message);
             }
-      
-          fetch("http://adventure-blog.ddns.net/adventure-blogs-api/create_post.php", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": headers["Authorization"] // Example custom header
-            },
-            body: JSON.stringify(Object.fromEntries(formData)) // Convert form data to JSON
-          })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Network response was not ok " + response.statusText);
-            }
-            return response.json();
-          })
-          .then((data) => {
-            console.log("Success:", data); // Handle success
-          });
         });
-      </script>
+    </script>
 </body>
 </html>
