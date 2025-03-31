@@ -58,7 +58,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $uploadDir = "profile_photos/";
 
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $fileType = finfo_file($finfo, $files["tmp_name"][$i]);
+        $fileType = finfo_file($finfo, $files["tmp_name"]);
         finfo_close($finfo);
         $profilePhotoPath = $uploadDir . basename($_FILES["profile_photo"]["name"]);
         if (!in_array($fileType, $allowedTypes)) {
