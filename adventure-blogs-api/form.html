@@ -57,7 +57,7 @@
                     throw new Error(`Network response was not ok: ${response.statusText} - ${errorText}`);
                 }
 
-                const data = await response.json();
+                const data = await response.text();
                 console.log("Success:", data); // Handle success
                 alert("Post created successfully!");
             } catch (error) {
