@@ -55,7 +55,7 @@ if ($stmt->execute()) {
 
     // Handle file uploads
     if ($files) {
-        $upload_dir = "uploads/";
+        $upload_dir = "../uploads/";
         foreach ($files["name"] as $index => $filename) {
             $tmp_name = $files["tmp_name"][$index];
             $file_path = $upload_dir . uniqid() . "_" . basename($filename);
