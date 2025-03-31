@@ -1,7 +1,7 @@
 <?php
 // header("Content-Type: multipart/form-data; charset=UTF-8");
 var_dump($_POST);
-die();
+
 include 'db.php';
 include 'verify_token.php'; // To verify the user's token
 
