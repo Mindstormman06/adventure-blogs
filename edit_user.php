@@ -40,8 +40,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Handle profile photo upload
     if (!empty($_FILES["profile_photo"]["name"])) {
+        $files = $_FILES["profile_photo"];
+        $allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/gif",
+            "video/mp4",
+            "video/webm",
+            "video/quicktime",
+            "audio/mpeg",
+            "audio/wav",
+            "audio/ogg",
+            "audio/mp4",
+            "audio/x-m4a",
+            "audio/flac"
+        ];
         $uploadDir = "profile_photos/";
+
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $fileType = finfo_file($finfo, $files["tmp_name"][$i]);
+        finfo_close($finfo);
         $profilePhotoPath = $uploadDir . basename($_FILES["profile_photo"]["name"]);
+        if (!in_array($fileType, $allowedTypes)) {
+            throw new Exception("Invalid file type for " . $files["name"][$i] . ".");
+        }
         move_uploaded_file($_FILES["profile_photo"]["tmp_name"], $profilePhotoPath);
     }
 
