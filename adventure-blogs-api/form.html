@@ -48,17 +48,23 @@
                 }
             }
       
-          const response = await fetch(this.action, {
+          fetch(this.action, {
             method: this.method,
             headers: {
               "Content-Type": "application/json",
               "Authorization": headers["Authorization"] // Example custom header
             },
             body: JSON.stringify(Object.fromEntries(formData)) // Convert form data to JSON
+          })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok " + response.statusText);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log("Success:", data); // Handle success
           });
-      
-          const result = await response.json(); // Handle response
-          console.log(result);
         });
       </script>
 </body>
