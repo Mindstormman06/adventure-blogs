@@ -1,16 +1,12 @@
 <?php
 header("Content-Type: application/json");
 
-
-
 include 'db.php';
 
 $raw_input = file_get_contents("php://input");
 
-
 // Decode the JSON input
 $data = json_decode($raw_input, true);
-
 
 // Check if JSON decoding failed
 if (json_last_error() !== JSON_ERROR_NONE) {
@@ -19,7 +15,7 @@ if (json_last_error() !== JSON_ERROR_NONE) {
     exit;
 }
 
-// // Check if username and password are provided
+// Check if username and password are provided
 if (!isset($data["username"]) || !isset($data["password"])) {
     echo json_encode(["status" => "error", "message" => "Username or password missing"]);
     exit;
@@ -27,8 +23,6 @@ if (!isset($data["username"]) || !isset($data["password"])) {
 
 $username = $data["username"];
 $password = $data["password"]; // Plaintext password sent from mobile app
-
-echo("username: " . $username . " password: " . $password);
 
 // Prepare the SQL query to find the user by username
 $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
@@ -51,16 +45,17 @@ if ($user && password_verify($password, $user["password_hash"])) {
     // Encode JWT payload to create the token
     $jwt_token = base64_encode(json_encode($jwt_payload));
 
-    // Return successful login response
+    // Return successful login response with profile photo URL
     echo json_encode([
         "status" => "success",
         "message" => "Login successful",
         "user" => [
             "id" => $user["id"],
             "username" => $user["username"],
-            "role" => $user["role"]
+            "role" => $user["role"],
+            "profile_photo" => $user["profile_photo"] // Include profile photo URL
         ],
-       // "token" => $jwt_token  // Send token to mobile app
+        "token" => $jwt_token  // Send token to mobile app
     ]);
 } else {
     // Return error if user not found or password doesn't match
