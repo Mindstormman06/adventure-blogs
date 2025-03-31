@@ -22,7 +22,7 @@ if (!$user_data) {
 
 // Decode the JSON input
 $raw_input = file_get_contents("php://input");
-$data = json_decode($raw_input, true);
+$data = $_POST;
 
 // Check if JSON decoding failed
 if (json_last_error() !== JSON_ERROR_NONE) {
@@ -44,6 +44,7 @@ $longitude = isset($data["longitude"]) ? $data["longitude"] : null;
 $location_name = isset($data["location_name"]) ? $data["location_name"] : null;
 $tags = isset($data["tags"]) ? $data["tags"] : []; // Array of tag names
 $files = isset($_FILES["files"]) ? $_FILES["files"] : null;
+
 
 // Insert the new post into the database
 $stmt = $conn->prepare("INSERT INTO posts (user_id, title, content, created_at, latitude, longitude, location_name) VALUES (?, ?, ?, NOW(), ?, ?, ?)");
