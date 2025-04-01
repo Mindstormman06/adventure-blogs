@@ -49,10 +49,16 @@ list($postFiles, $postFilesOriginal) = $postObj->getAllPostFiles();
 
         <?php foreach ($posts as $post):
             // Check type of uploaded files
-            $fileExtension = pathinfo($postFiles[$post['id']][0]);
-            $isVideo = in_array(strtolower($fileExtension['extension']), $videoFileTypes);
-            $isAudio = in_array(strtolower($fileExtension['extension']), $audioFileTypes);
-            $isImage = !$isVideo && !$isAudio && !empty($post['image_path']);
+            if (isset($postFiles[$post['id']]) && is_array($postFiles[$post['id']])) {
+                $fileExtension = pathinfo($postFiles[$post['id']][0]);
+                $isVideo = in_array(strtolower($fileExtension['extension']), $videoFileTypes);
+                $isAudio = in_array(strtolower($fileExtension['extension']), $audioFileTypes);
+                $isImage = !$isVideo && !$isAudio && !empty($post['image_path']);
+            } else {
+                $isVideo = false;
+                $isAudio = false;
+                $isImage = false;
+            }
             $i = -1;
 
             // Set User ID
