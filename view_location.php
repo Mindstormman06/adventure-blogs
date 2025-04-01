@@ -19,7 +19,7 @@ $location_name = htmlspecialchars($_GET['name']);
     <title>Post Location</title>
 
     <!-- Load Leaflet from CDN -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
 </head>
 
 <body>
@@ -32,7 +32,7 @@ $location_name = htmlspecialchars($_GET['name']);
     </div>
 
     <!-- Load Leaflet from CDN -->
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 
     <!-- Load Map -->
     <script>

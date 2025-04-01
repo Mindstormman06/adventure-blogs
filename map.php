@@ -40,7 +40,7 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
     <title>Locations</title>
 
     <!-- Load Leaflet from CDN -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
     <style>
         #map {
             height: 60vh;
@@ -116,7 +116,7 @@ if (!empty($posts) && isset($posts[0]['latitude'], $posts[0]['longitude'])) {
     </div>
 
     <!-- Load Leaflet from CDN -->
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 
     <!-- Include the new JavaScript file -->
     <script>
