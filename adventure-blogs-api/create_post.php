@@ -21,7 +21,6 @@ if (!$user_data) {
 }
 
 // Decode the JSON input
-$raw_input = file_get_contents("php://input");
 $data = $_POST;
 
 // Check if JSON decoding failed
@@ -70,6 +69,17 @@ if ($stmt->execute()) {
     }
 
     // Handle tags
+    if (!is_array($tags)) {
+        $tags = explode(",", $tags); // Convert comma-separated string to array
+    }
+    foreach ($tags as $key => $tag) {
+        $tags[$key] = trim($tag); // Trim whitespace from each tag
+    }
+    if (empty($tags)) {
+        $tags = []; // Ensure tags is an empty array if no tags are provided
+    } else {
+        $tags = array_unique($tags); // Remove duplicates
+    }
     foreach ($tags as $tag_name) {
         // Check if the tag already exists
         $tag_stmt = $conn->prepare("SELECT id FROM tags WHERE name = ?");
