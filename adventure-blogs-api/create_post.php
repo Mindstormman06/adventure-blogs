@@ -58,10 +58,19 @@ if ($stmt->execute()) {
         $upload_dir = "../uploads/";
         foreach ($files["name"] as $index => $filename) {
             $tmp_name = $files["tmp_name"][$index];
-            $file_path = $upload_dir . uniqid() . "_" . basename($filename);
 
+            // Extract the file extension
+            $file_extension = pathinfo($filename, PATHINFO_EXTENSION);
+
+            // Generate the custom file name
+            $custom_file_name = $post_id . "-" . time() . "-" . $index . "." . $file_extension;
+            $file_path = $upload_dir . $custom_file_name;
+
+            // Move the uploaded file to the target directory
             if (move_uploaded_file($tmp_name, $file_path)) {
                 $original_filename = $filename;
+
+                // Insert the file details into the database
                 $file_stmt = $conn->prepare("INSERT INTO post_files (post_id, file_path, original_filename) VALUES (?, ?, ?)");
                 $file_stmt->bind_param("iss", $post_id, $file_path, $original_filename);
                 $file_stmt->execute();
