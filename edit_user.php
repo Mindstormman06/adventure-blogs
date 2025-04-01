@@ -45,15 +45,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             "image/jpeg",
             "image/png",
             "image/gif",
-            "video/mp4",
-            "video/webm",
-            "video/quicktime",
-            "audio/mpeg",
-            "audio/wav",
-            "audio/ogg",
-            "audio/mp4",
-            "audio/x-m4a",
-            "audio/flac"
         ];
         $uploadDir = "profile_photos/";
 
