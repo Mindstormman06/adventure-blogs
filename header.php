@@ -124,6 +124,7 @@ $activeFile = substr($activeFile, 1);
                         <div>
                             <button id="dropdownUserAvatarButton" data-dropdown-toggle="dropdownAvatar" class="flex text-sm bg-adventure-green rounded-full md:me-0" type="button">
                             <span class="sr-only">Open user menu</span>
+                            <!-- Fixed! -->
                             <img class="w-8 h-8 rounded-full mx-auto object-cover" src="<?php echo($user['profile_photo'])?>" alt="user photo">
                             </button>
                         </div>
