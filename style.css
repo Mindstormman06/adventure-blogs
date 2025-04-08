@@ -95,6 +95,8 @@ nav a:hover {
     height: 35px;
     border-radius: 50%;
     object-fit: cover;
+    color:#06402B;
+    background-color: #06402B;
 }
 .user-info {
     position: absolute;
