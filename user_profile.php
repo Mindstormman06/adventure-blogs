@@ -50,7 +50,7 @@ list($postFiles, $postFilesOriginal) = $postObj->getAllPostFiles();
         <?php if (!empty($user['profile_photo'])): ?>
             <img src="<?php echo htmlspecialchars($user['profile_photo']); ?>" alt="Profile Photo" class="profile-photo mx-auto">
         <?php else: ?>
-            <img src="profile_photos/default_profile.png" alt="Default Profile" class="profile-photo">
+            <img src="profile_photos/default_profile.png" alt="Default Profile" class="profile-photo mx-auto">
         <?php endif; ?>
 
         <h1><?php echo htmlspecialchars($user['username']); ?></h1>
@@ -64,9 +64,6 @@ list($postFiles, $postFilesOriginal) = $postObj->getAllPostFiles();
                 <a href="<?php echo htmlspecialchars($user['website_link']); ?>" target="_blank">Website</a>
             <?php endif; ?>
         </div>
-        <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $user['id']): ?>
-            <a class="btn btn-primary" href="edit_user.php">Edit Profile</a>
-        <?php endif; ?>
     </div>
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 
