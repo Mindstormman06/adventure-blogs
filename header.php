@@ -75,9 +75,6 @@ $activeFile = substr($activeFile, 1);
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
     <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
 
-    
-
-
     <!-- Background Image -->
     <style type="text/css">
 
@@ -135,12 +132,12 @@ $activeFile = substr($activeFile, 1);
                             <div><?php echo($user['username'])?></div>
                             <div class="font-medium truncate"><?php echo($user['email'])?></div>
                             </div>
-                            <ul class="px-4 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownUserAvatarButton">
+                            <ul class="px-0 mb-0 text-sm text-gray-700 dark:text-gray-200 align-center justify-center" aria-labelledby="dropdownUserAvatarButton">
                             <li>
-                                <a href="<?php echo 'user_profile.php?username=' . $user['username'] ?>" class="block px-4">View Profile</a>
+                                <a href="<?php echo 'user_profile.php?username=' . $user['username'] ?>" class="block px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">View Profile</a>
                             </li>
                             <li>
-                                <a href="edit_user.php" class="block px-4">User Settings</a>
+                                <a href="edit_user.php" class="block hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">User Settings</a>
                             </li>
                             </ul>
                             <a href="logout.php" class="block px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Sign out</a>
