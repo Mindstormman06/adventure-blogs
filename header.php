@@ -123,7 +123,7 @@ $activeFile = substr($activeFile, 1);
                     <?php if (isset($_SESSION['user_id'])): ?>
                         <button id="dropdownUserAvatarButton" data-dropdown-toggle="dropdownAvatar" class="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600" type="button">
                         <span class="sr-only">Open user menu</span>
-                        <img class="w-8 h-8 rounded-full" src="<?php echo($user['profile_photo'])?>" alt="user photo">
+                        <img src="<?php echo htmlspecialchars($user['profile_photo']); ?>" alt="Profile Photo" class="profile-photo mx-auto w-8 h-8">
                         </button>
 
                         <!-- Dropdown menu -->
