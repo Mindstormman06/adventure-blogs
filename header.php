@@ -122,9 +122,9 @@ $activeFile = substr($activeFile, 1);
 
                     <?php if (isset($_SESSION['user_id'])): ?>
                         <div>
-                            <button id="dropdownUserAvatarButton" data-dropdown-toggle="dropdownAvatar" class="flex text-sm bg-adventure-greeb rounded-full md:me-0 focus:ring-4 focus:bg-adventure-green dark:focus:bg-adventure-green" type="button">
+                            <button id="dropdownUserAvatarButton" data-dropdown-toggle="dropdownAvatar" class="flex text-sm bg-adventure-green rounded-full md:me-0" type="button">
                             <span class="sr-only">Open user menu</span>
-                            <img class="w-8 h-8 rounded-full mx-auto" src="<?php echo($user['profile_photo'])?>" alt="user photo">
+                            <img class="w-8 h-8 rounded-full mx-auto object-cover" src="<?php echo($user['profile_photo'])?>" alt="user photo">
                             </button>
                         </div>
                     
