@@ -102,10 +102,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
 
         <!-- Update instagram link -->
-        <div class="form-group">
+        <!-- <div class="form-group">
             <label for="instagram_link">Instagram Link:</label>
             <input type="url" name="instagram_link" id="instagram_link" value="<?php echo htmlspecialchars($user['instagram_link'] ?? ''); ?>">
-        </div>
+        </div> -->
 
         <!-- Update website link -->
         <div class="form-group">

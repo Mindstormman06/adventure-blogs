@@ -57,9 +57,9 @@ list($postFiles, $postFilesOriginal) = $postObj->getAllPostFiles();
 
         <!-- Display Social Media Links -->
         <div class="profile-links">
-            <?php if (!empty($user['instagram_link'])): ?>
+            <!-- <?php if (!empty($user['instagram_link'])): ?>
                 <a href="<?php echo htmlspecialchars($user['instagram_link']); ?>" target="_blank">Instagram</a>
-            <?php endif; ?>
+            <?php endif; ?> -->
             <?php if (!empty($user['website_link'])): ?>
                 <a href="<?php echo htmlspecialchars($user['website_link']); ?>" target="_blank">Website</a>
             <?php endif; ?>
