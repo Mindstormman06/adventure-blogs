@@ -121,10 +121,20 @@ $activeFile = substr($activeFile, 1);
                 <div class="user-info">
 
                     <?php if (isset($_SESSION['user_id'])): ?>
-                        <button id="dropdownUserAvatarButton" data-dropdown-toggle="dropdownAvatar" class="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600 opacity-0" type="button">
-                        <span class="sr-only">Open user menu</span>
-                        <img class="w-8 h-8 rounded-full mx-auto opacity-100" src="<?php echo($user['profile_photo'])?>" alt="user photo">
-                        </button>
+                        <!-- <div>
+                            <button id="dropdownUserAvatarButton" data-dropdown-toggle="dropdownAvatar" class="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600 opacity-0" type="button">
+                            <span class="sr-only">Open user menu</span>
+                            <img class="w-8 h-8 rounded-full mx-auto" src="<?php echo($user['profile_photo'])?>" alt="user photo">
+                            </button>
+                        </div> -->
+                        <section class="w-full bg-violet-50 pt-32 pb-48">
+                            <div class="relative mx-auto h-[28rem] w-96 overflow-hidden rounded-b-full">
+                                <button id="dropdownUserAvatarButton" data-dropdown-toggle="dropdownAvatar" class ="absolute bottom-0 z-0 h-96 w-full rounded-t-full bg-purple-300">
+                                <img src="<?php echo($user['profile_photo'])?>" class="relative bottom-0 translate-y-16 object-contain transition delay-100 duration-300 ease-in-out hover:translate-y-4" alt=""/>
+                                </button>
+                            </div>
+                        </section>
+
 
                         <!-- Dropdown menu -->
                         <div id="dropdownAvatar" class="z-10 hidden bg-gray-600 divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 dark:divide-gray-600">
