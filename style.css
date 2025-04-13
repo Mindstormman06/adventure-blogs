@@ -76,7 +76,7 @@ nav a {
     color: white;
     text-decoration: none;
     font-weight: bold;
-    padding: 10px 15px;
+    padding: 10px 25px;
 }
 
 nav a:hover {
@@ -101,8 +101,8 @@ nav a:hover {
 .user-info {
     position: absolute;
     right: 20px;
-    display: flex;
-    align-items: center;
+    /* display: flex; */
+    /* align-items: center; */
 }
 .username {
     color: lightblue;
@@ -147,6 +147,9 @@ nav a:hover {
         position: static;
         right: auto;
     }
+    .logo-container {
+        position: static;
+    }
 
     .username {
         font-size: 14px;
@@ -154,6 +157,10 @@ nav a:hover {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    .nav-buttons {
+        flex-direction: column;
     }
 }
 
@@ -468,7 +475,9 @@ form label {
     background-color: #06402B;
 }
 
-
+.nav-buttons {
+    flex-direction: row;
+}
 
 
 

@@ -95,34 +95,53 @@ $activeFile = substr($activeFile, 1);
 
 <body>
 
-    <header>
-        <a href="index.php"><img src="logo_transparent.png" alt="Adventure Blogs Logo" class="logo" style="height: 75px;"></a>
+    <header class="sticky-top">
         <!-- <h1><a href="index.php">Adventure Blogs</a></h1> -->
         <!-- Navigation bar -->
         <div class="nav-container">
             <nav>
+                <a href="index.php" class="absolute left-0 top-0 logo-container"><img src="logo_transparent.png" alt="Adventure Blogs Logo" class="logo" style="height: 75px;"></a>
+                <div class="m-auto flex items-center justify-center ml-0">
                 <?php if ($isFlare !== true): ?>
-                    <a href="index.php" class="index">Home</a>
-                    <a href="view_all.php" class="view_all">View All</a>
-                    <a href="map.php" class="map">Map</a>
-                    <?php if (isset($_SESSION['user_id'])): ?>
-                        <a href="dashboard.php" class="dashboard">Create Post</a>
+                    <?php 
+                        if ($activeFile === 'index') {
+                            echo '<a href="index.php" class="index"><img src="/assets/home_active.png" class="w-10 h-10"></a>';
+                        } else {
+                            echo '<a href="index.php" class="index"><img src="/assets/home.png" class="w-10 h-10"></a>';
+                        } 
+                        if ($activeFile === 'view_all') {
+                            echo '<a href="view_all.php" class="view_all"><img src="/assets/all_active.png" class="w-10 h-10"></a>';
+                        } else {
+                            echo '<a href="view_all.php" class="view_all"><img src="/assets/all.png" class="w-10 h-10"></a>';
+                        }
+                        if ($activeFile === 'map') {
+                            echo '<a href="map.php" class="map"><img src="/assets/map_active.png" class="w-10 h-10"></a>';
+                        } else {
+                            echo '<a href="map.php" class="create"><img src="/assets/map.png" class="w-10 h-10"></a>';
+                        }
+                     if (isset($_SESSION['user_id'])): ?>
+                        <?php if ($activeFile === 'dashboard') {
+                            echo '<a href="dashboard.php" class="dashboard"><img src="/assets/add_active.png" class="w-10 h-10"></a>';
+                        } else {
+                            echo '<a href="dashboard.php" class="dashboard"><img src="/assets/add.png" class="w-10 h-10"></a>';
+                        } ?>
                         <!-- <a href="flare.php">🔥 Flare (Beta) 🔥</a> -->                        
                     <?php endif; ?>
+                </div>
 
                 <?php endif; ?>
                 <?php if ($isFlare === true): ?>
                     <a href="index.php">&larr; Back to Adventure Blogs</a>
                 <?php endif; ?>
                 <!-- User Info -->
-                <div class="user-info">
+                <div class="user-info top-[10px]">
 
                     <?php if (isset($_SESSION['user_id'])): ?>
                         <div>
                             <button id="dropdownUserAvatarButton" data-dropdown-toggle="dropdownAvatar" class="flex text-sm bg-adventure-green rounded-full md:me-0" type="button">
                             <span class="sr-only">Open user menu</span>
                             <!-- Fixed! -->
-                            <img class="w-8 h-8 rounded-full mx-auto object-cover" src="<?php echo($user['profile_photo'])?>" alt="user photo">
+                            <img class="w-8 h-8 rounded-full mx-auto object-cover" src="<?php echo($user['profile_photo'])?>" alt="user photo" style="height: 75px; width: 75px;">
                             </button>
                         </div>
                     
@@ -143,11 +162,14 @@ $activeFile = substr($activeFile, 1);
                             <a href="logout.php" class="block px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Sign out</a>
                             </div>
                         </div>
-                    <?php else: ?>
-                        <a href="login.php" class="login">Sign In</a>
-                        <a href="register.php" class="register">Register</a>
-                    <?php endif; ?>
+                    
                 </div>
+                <?php else: ?>
+                <div class="user-info w-full flex justify-end top-5">
+                    <a href="login.php" class="login">Sign In</a>
+                    <a href="register.php" class="register">Register</a>
+                </div>
+                <?php endif; ?>
             </nav>
         </div>
     </header>
